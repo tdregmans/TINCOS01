@@ -1,0 +1,39 @@
+#VRML_SIM R2023a utf8
+# The PROTO bot written for practicum 1.
+
+
+PROTO Practicum1 [
+  field SFVec3f translation 0 0 0
+  field SFRotation rotation 0 0 1 0
+  field MFNode children [ ]
+  field SFString name "robot"
+  field SFString controller "bot-controller"
+  
+  
+  field SFVec3f startpoint 0 0 0
+  field SFVec3f endpoint 0 0 0
+]
+{
+  Robot {
+    translation IS translation
+    rotation IS rotation
+    name IS name
+    controller IS controller
+    
+    children IS children
+    children [
+      Shape {
+        geometry Box {
+          size 0.1 0.1 0.1
+        }
+      }
+      Solid {
+        boundingObject Box {
+          size 0.1 0.1 0.1
+        }
+      }
+    ]
+    controller "bot-controller"
+    supervisor TRUE
+  }
+}
