@@ -9,15 +9,20 @@
  #
 
 
+# TODO:
+    # Expand on naming systems of bots in README 
+    #
+
 from paho.mqtt import client as mqtt_client
 import time
 
+BOT_ID = 1 # Must be different for each bot
+
 MQTT_BROKER = "broker.mqtt-dashboard.com" 
 MQTT_PORT = 1883
-MQTT_CLIENTID = "server"
+MQTT_CLIENTID = "TINCOS01-BHT-" + str(BOT_ID) + "-DT" # DT means Digital Twin
 MQTT_TOPIC = "TINCOS/protocol/communication"
 MQTT_EMERGENCY_TOPIC = "TINCOS/protocol/emergency"
-
 
 def connect_mqtt() -> mqtt_client:
     def on_connect(client, userdata, flags, rc):
@@ -40,6 +45,12 @@ def subscribe(client: mqtt_client):
     client.subscribe(MQTT_TOPIC)
     client.on_message = on_message
 
+    msg = "hi"
+    client.publish(MQTT_TOPIC, msg)
+
+    for x in range(10):
+        client.publish(MQTT_TOPIC, str(x))
+
 def publish(client):
     msg_count = 1
     while True:
@@ -55,6 +66,7 @@ def publish(client):
         msg_count += 1
         if msg_count > 5:
             break
+
 
 
 def run():
