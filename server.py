@@ -12,6 +12,7 @@
 from paho.mqtt import client as mqtt_client
 import time
 import json
+import math
 
 MQTT_BROKER = "broker.mqtt-dashboard.com" 
 MQTT_PORT = 1883
@@ -25,6 +26,11 @@ fields = []
 for x in range(fieldSize):
     fields.append(["" for y in range(fieldSize)])
 
+bots = []
+bots = ["bot1", "bot2", "bot3"] # hardcoded bot to assign targest, while there is no dashboard
+
+targetFields = [[0, 2], [0, 0], [8, 0]]
+
 def coords2fieldId(coords):
     # from Webots coördinates to field index
     x = (int) ((coords["x"] + 0.4) * 10)
@@ -35,7 +41,7 @@ def fieldId2coords(fieldId):
     # from Webots coördinates to field index
     x = (fieldId[0] / 10) - 0.4
     y = (fieldId[1] / 10) - 0.4
-    return {"x": x, "y": y}
+    return {"x": round(x,1), "y": round(y,1)}
 
 def printFields():
     for row in fields:
@@ -54,6 +60,8 @@ def connect_mqtt() -> mqtt_client:
     client.connect(MQTT_BROKER, MQTT_PORT)
     return client
 
+
+client = connect_mqtt()
 
 def subscribe(client: mqtt_client):
     def on_message(client, userdata, msg):
@@ -82,6 +90,13 @@ def publish(client):
         if msg_count > 5:
             break
 
+
+def distance(a, b):
+    # calculate the distance between a and b
+    xi = a[0] - b[0]
+    yi = a[1] - b[1]
+    return math.sqrt(math.pow(xi, 2) + math.pow(yi, 2))
+
 def processLocation(sender, currentLocation, obstacles):
     # In fields[x][y] "" means empty field, "bot1" means bot1 in this field, "O" means obstacle in this field 
 
@@ -104,6 +119,27 @@ def processLocation(sender, currentLocation, obstacles):
     # possible feature for later: Remove obstacle if they are no longer there.
     # First calcuate if bot should be able to see obstacle. Then, if not detected by bot, deleted by server
 
+    # find new location for bot to go to
+    target = targetFields[bots.index(sender)]
+
+    
+    possibleNewLocations = [[x+1, y], [x-1, y], [x, y+1], [x, y-1]]
+    # check for obstacles
+    for location in possibleNewLocations:
+        if(fields[location[0]][location[1]]):
+            # not empty -> remove
+            possibleNewLocations.remove(location)
+    print(possibleNewLocations)
+    # check what possible new location is closest to target
+    newLocation = [x, y]
+    max = 0
+    for possibleNewLocation in possibleNewLocations:
+        if(distance(possibleNewLocation, target) >= distance(newLocation, target)):
+            max = distance(possibleNewLocation, target)
+            newLocation = possibleNewLocation
+    print(newLocation)
+    return newLocation
+
 def processCommand(payload):
     print("-------------------------------------------")
     request = json.loads(payload)
@@ -112,15 +148,33 @@ def processCommand(payload):
 
         if (data["target"] == MQTT_CLIENTID):
             sender = data["sender"]
+
+            if(not(sender in bots)):
+                bots.append(sender)
             print(sender)
             currentLocation = data["msg"]["currentLocation"]
             obstacles = data["msg"]["obstacles"]
 
-            # print(currentLocation)
-            # print(obstacles)
+            # process location in memory
+            target = processLocation(sender, currentLocation, obstacles)
+            
+            response = {
+                "data": 
+                {
+                    "sender": MQTT_CLIENTID,
+                    "target": sender,
+                    "msg":
+                    {
+                        "targetLocation": fieldId2coords(target)
+                    }
+                },
+                "protocolVersion": 2.0
+            }
 
-            processLocation(sender, currentLocation, obstacles)
-            printFields()
+            # send new targetLocation to bot
+            print(json.dumps(response))
+            client.publish(MQTT_TOPIC, json.dumps(response))
+            
         else:
             print("Recieved message that wasn't addressed to me.")
     else:
@@ -130,7 +184,6 @@ def processCommand(payload):
             print("ERROR! Didn't understand syntax of request bot.")
 
 def run():
-    client = connect_mqtt()
     subscribe(client)
     client.loop_forever()
 

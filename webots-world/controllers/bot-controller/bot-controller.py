@@ -23,6 +23,7 @@ DS_MARGIN = 0.01
 ##################################################
 ################ MQTT CONNECTION #################
 ##################################################
+client = mqtt_client.Client(MQTT_CLIENTID)
 
 def connect_mqtt() -> mqtt_client:
     def on_connect(client, userdata, flags, rc):
@@ -31,7 +32,7 @@ def connect_mqtt() -> mqtt_client:
         else:
             print("Failed to connect, return code %d\n", rc)
 
-    client = mqtt_client.Client(MQTT_CLIENTID)
+    
     # client.username_pw_set(username, password)
     client.on_connect = on_connect
     client.connect(MQTT_BROKER, MQTT_PORT)
@@ -44,7 +45,6 @@ def subscribe(client: mqtt_client):
         topic = msg.topic
         print(BOT_ID + " received `{payload}` from `{topic}` topic")
         
-        executeServerCommand(payload, topic)
 
     client.subscribe(MQTT_TOPIC)
     client.on_message = on_message
@@ -111,9 +111,6 @@ DS_W.enable(timestep)
 trans = supervisorNode.getField("translation")
 # trans.setSFVec3f(supervisorNode.getField("startpoint"))
 trans.setSFVec3f(start_pos)
-
-def executeServerCommand(payload, topic):
-    print(payload)
     
 client = connect_mqtt()
 subscribe(client)
@@ -202,12 +199,13 @@ def goTo(targetLocation):
 # execute every second
 while robot.step(duration) != -1:
     current_pos = supervisorNode.getPosition()
-    print(createRequest())
+    # print(createRequest())
     client.publish(MQTT_TOPIC, createRequest())
-    print(BOT_ID + " DS N: " + str(DS_N.getValue()))
-    print(BOT_ID + " DS E: " + str(DS_E.getValue()))
-    print(BOT_ID + " DS S: " + str(DS_S.getValue()))
-    print(BOT_ID + " DS W: " + str(DS_W.getValue()))
+    
+    # print(BOT_ID + " DS N: " + str(DS_N.getValue()))
+    # print(BOT_ID + " DS E: " + str(DS_E.getValue()))
+    # print(BOT_ID + " DS S: " + str(DS_S.getValue()))
+    # print(BOT_ID + " DS W: " + str(DS_W.getValue()))
     
     if(target_pos == current_pos):
         print(BOT_ID + " arrived at target position.")

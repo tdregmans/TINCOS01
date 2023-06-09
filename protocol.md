@@ -65,18 +65,7 @@ Respons from server to bot:
             {
                 "x": 0.0,
                 "y": -0.2
-            },
-            "obstacles":
-            {
-                {
-                    "x": 0.1,
-                    "y": 0.1,
-                },
-                {
-                    "x": 0.2,
-                    "y": -0.3,
-                }
-            },
+            }
         }
     },
     "protocolVersion": 2.0
