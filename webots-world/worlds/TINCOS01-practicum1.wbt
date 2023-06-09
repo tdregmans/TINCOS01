@@ -8,8 +8,8 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/project
 WorldInfo {
 }
 Viewpoint {
-  orientation 0.00028714376659045215 0.9999999183566234 -0.00028431532427617394 1.5707992352609952
-  position 0.07009420530095735 0.04188827257479715 1.9978403112093777
+  orientation -0.42013943006326043 0.24255989584813098 0.8744412823238976 2.2065706288165297
+  position 0.5121778917485293 -0.8273762012273894 1.3263415545643071
 }
 TexturedBackground {
 }
@@ -20,7 +20,6 @@ RectangleArena {
   floorTileSize 0.2 0.2
 }
 Robot {
-  translation 0.1 -0.2 0
   children [
     DistanceSensor {
       translation 0.05 0 0.02
@@ -145,6 +144,7 @@ Robot {
   supervisor TRUE
 }
 Robot {
+  translation 0.3 0.4 0
   children [
     DistanceSensor {
       translation 0.05 0 0.02
@@ -269,7 +269,7 @@ Robot {
   supervisor TRUE
 }
 Robot {
-  translation 0.3 -0.2 0
+  translation 0 0.3 0
   children [
     DistanceSensor {
       translation 0.05 0 0.02

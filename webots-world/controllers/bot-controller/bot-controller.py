@@ -4,6 +4,7 @@ from controller import DistanceSensor
 
 from paho.mqtt import client as mqtt_client
 import time
+import json
 
 # create the Robot instance
 robot = Supervisor()
@@ -16,6 +17,8 @@ MQTT_PORT = 1883
 MQTT_CLIENTID = "TINCOS01-BHT-" + str(BOT_ID) + "-DT" # DT means Digital Twin
 MQTT_TOPIC = "TINCOS/protocol/communication"
 MQTT_EMERGENCY_TOPIC = "TINCOS/protocol/emergency"
+
+DS_MARGIN = 0.01
 
 ##################################################
 ################ MQTT CONNECTION #################
@@ -77,13 +80,13 @@ print("Robot '"+str(BOT_ID)+"' started")
 
 # Set start and target positions
 if (BOT_ID == "bot1"):
-    start_pos = [0.5, 0, 0]
+    start_pos = [0, 0, 0]
     target_pos = [-0.3, 0.4, 0]
 if (BOT_ID == "bot2"):
     start_pos = [0.3, 0.4, 0]
     target_pos = [-0.2, 0.4, 0]
 if (BOT_ID == "bot3"):
-    start_pos = [-0.2, 0.5, 0]
+    start_pos = [0.0, 0.3, 0]
     target_pos = [0, -0.3, 0]
 
 STEP = 0.1
@@ -111,6 +114,9 @@ trans.setSFVec3f(start_pos)
 
 def executeServerCommand(payload, topic):
     print(payload)
+    
+client = connect_mqtt()
+subscribe(client)
 
 # calculate a multiple of timestep close to one second
 duration = (1000 // timestep) * timestep
@@ -129,11 +135,75 @@ def updateLEDS():
     LED_E.set(DS_E.getValue() < STEP)
     LED_S.set(DS_S.getValue() < STEP)
     LED_W.set(DS_W.getValue() < STEP)
+
+def calcuateObstacles():
+    obstacles = []
+    current_pos = supervisorNode.getPosition()
+    # North
+    if (DS_N.getValue() < STEP):
+        obstacle = {
+            "x": round(current_pos[0] + 0.1, 1),
+            "y": round(current_pos[1], 1)
+        }
+        obstacles.append(obstacle)
+    # East
+    if (DS_E.getValue() < STEP):
+        obstacle = {
+            "x": round(current_pos[0], 1),
+            "y": round(current_pos[1] - 0.1, 1)
+        }
+        obstacles.append(obstacle)
+    # South
+    if (DS_S.getValue() < STEP):
+        obstacle = {
+            "x": round(current_pos[0] - 0.1, 1),
+            "y": round(current_pos[1], 1)
+        }
+        obstacles.append(obstacle)
+    # West
+    if (DS_W.getValue() < STEP):
+        obstacle = {
+            "x": round(current_pos[0], 1),
+            "y": round(current_pos[1] + 0.1, 1)
+        }
+        obstacles.append(obstacle)
+    return obstacles
+
+def createRequest():
+    # return a valid request of the bot to the server with protocol 2.0
+    current_pos = supervisorNode.getPosition()
+    obstacles = calcuateObstacles()
+    request = {
+        "data": 
+        {
+            "sender": BOT_ID,
+            "target": "server",
+            "msg":
+            {
+                "currentLocation":
+                {
+                    "x": current_pos[0],
+                    "y": current_pos[1]
+                },
+                "obstacles": obstacles,
+            }
+        },
+        "protocolVersion": 2.0
+    }
     
     
+    return json.dumps(request)
+    
+def goTo(targetLocation):
+    x = targetLocation["x"]
+    y = targetLocation["y"]
+    trans.setSFVec3f([x, y, 0])
+
 # execute every second
 while robot.step(duration) != -1:
     current_pos = supervisorNode.getPosition()
+    print(createRequest())
+    client.publish(MQTT_TOPIC, createRequest())
     print(BOT_ID + " DS N: " + str(DS_N.getValue()))
     print(BOT_ID + " DS E: " + str(DS_E.getValue()))
     print(BOT_ID + " DS S: " + str(DS_S.getValue()))
@@ -151,4 +221,6 @@ while robot.step(duration) != -1:
     # trans.setSFVec3f(new_pos)
     
     updateLEDS()
+    
+    
     

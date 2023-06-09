@@ -2,7 +2,7 @@
 Bartholomeus Petrus
 Hidde-Jan Daniëls
 Thijs Dregmans
-2023-04-19
+2023-06-09
 In dit readme bestand spreken we het protocol af waarmee de robots en hun Digital Twins in Webots communiceren.
 
 ### Specificaties
@@ -17,86 +17,50 @@ De volgende dingen moeten gecommuniceerd worden:
 - Obstakels hoeven maar 1x gecommuniceerd te wordn. 
 * Obstakels zijn altijd 1 bij 1.
 
-#### Syntaxis
-We kiezen voor de volgende syntax:
-```
-<msg id>
-    528e0649
-<msg id>
-<data>
-    <timestamp>
-        1681903388
-    <timestamp>
-    <sender>
-        robot 01
-    <sender>
-    <target>
-        server
-    <target>
-    <msg>
-        <type>
-            0
-        <type>
-        <current location>
-            <x>
-                0.1
-            <x>
-            <y>
-                -0.3
-            <y>
-        <current location>
-        <target location>
-            <x>
-                0.0
-            <x>
-            <y>
-                -0.2
-            <y>
-        <target location>
-        <obstacles>
-            [
-                <obstacle>
-                    <x>
-                        0.1
-                    <x>
-                    <y>
-                        0.1
-                    <y>
-                <obstacle>
-                <obstacle>
-                    <x>
-                        0.2
-                    <x>
-                    <y>
-                        -0.3
-                    <y>
-                <obstacle>
-            ]
-        <obstacles>
-    <msg>
-    <protocol version>
-        1.0
-    <protocol version>
-<data>
-```
 #### Implementation
+
+Request from bot to server:
 
 ```json
 {
-    "msgId": "528e0649",
     "data": 
     {
-        "timestamp": 1681903388,
-        "sender": "rbt1",
+        "sender": "bot1",
         "target": "server",
         "msg":
         {
-            "type": 0,
             "currentLocation":
             {
                 "x": 0.1,
                 "y": -0.3
             },
+            "obstacles":
+            {
+                {
+                    "x": 0.1,
+                    "y": 0.1,
+                },
+                {
+                    "x": 0.2,
+                    "y": -0.3,
+                }
+            },
+        }
+    },
+    "protocolVersion": 2.0
+}
+```
+
+Respons from server to bot:
+
+```json
+{
+    "data": 
+    {
+        "sender": "server",
+        "target": "bot2",
+        "msg":
+        {
             "targetLocation":
             {
                 "x": 0.0,
@@ -115,7 +79,7 @@ We kiezen voor de volgende syntax:
             },
         }
     },
-    "protocolVersion": 1.0
+    "protocolVersion": 2.0
 }
 ```
 
