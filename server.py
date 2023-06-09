@@ -67,28 +67,12 @@ def subscribe(client: mqtt_client):
     def on_message(client, userdata, msg):
         payload = msg.payload.decode()
         topic = msg.topic
-        print(MQTT_CLIENTID + " received `{payload}` from `{topic}` topic")
+        print(payload)
         
         processCommand(payload)
 
     client.subscribe(MQTT_TOPIC)
     client.on_message = on_message
-
-def publish(client):
-    msg_count = 1
-    while True:
-        time.sleep(1)
-        msg = f"messages: {msg_count}"
-        result = client.publish(MQTT_TOPIC, msg)
-        # result: [0, 1]
-        status = result[0]
-        if status == 0:
-            print(f"Send `{msg}` to topic `{MQTT_TOPIC}`")
-        else:
-            print(f"Failed to send message to topic {MQTT_TOPIC}")
-        msg_count += 1
-        if msg_count > 5:
-            break
 
 
 def distance(a, b):
@@ -129,7 +113,6 @@ def processLocation(sender, currentLocation, obstacles):
         if(fields[location[0]][location[1]]):
             # not empty -> remove
             possibleNewLocations.remove(location)
-    print(possibleNewLocations)
     # check what possible new location is closest to target
     newLocation = [x, y]
     max = 0
@@ -137,11 +120,9 @@ def processLocation(sender, currentLocation, obstacles):
         if(distance(possibleNewLocation, target) >= distance(newLocation, target)):
             max = distance(possibleNewLocation, target)
             newLocation = possibleNewLocation
-    print(newLocation)
     return newLocation
 
 def processCommand(payload):
-    print("-------------------------------------------")
     request = json.loads(payload)
     if (request["protocolVersion"] == 2.0):
         data = request["data"]
@@ -172,11 +153,10 @@ def processCommand(payload):
             }
 
             # send new targetLocation to bot
-            print(json.dumps(response))
             client.publish(MQTT_TOPIC, json.dumps(response))
             
-        else:
-            print("Recieved message that wasn't addressed to me.")
+        # else:
+        #     print("Recieved message that wasn't addressed to me.")
     else:
         if(request["protocolVersion"] < 2.0):
             print("WARNING! Deprecated protocol was used.")

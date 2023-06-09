@@ -18,12 +18,9 @@ MQTT_CLIENTID = "TINCOS01-BHT-" + str(BOT_ID) + "-DT" # DT means Digital Twin
 MQTT_TOPIC = "TINCOS/protocol/communication"
 MQTT_EMERGENCY_TOPIC = "TINCOS/protocol/emergency"
 
-DS_MARGIN = 0.01
-
 ##################################################
 ################ MQTT CONNECTION #################
 ##################################################
-client = mqtt_client.Client(MQTT_CLIENTID)
 
 def connect_mqtt() -> mqtt_client:
     def on_connect(client, userdata, flags, rc):
@@ -32,44 +29,22 @@ def connect_mqtt() -> mqtt_client:
         else:
             print("Failed to connect, return code %d\n", rc)
 
-    
+    client = mqtt_client.Client(MQTT_CLIENTID)
     # client.username_pw_set(username, password)
     client.on_connect = on_connect
     client.connect(MQTT_BROKER, MQTT_PORT)
     return client
 
-
+def on_message(client, userdata, msg):
+    payload = msg.payload.decode()
+    topic = msg.topic
+    print(BOT_ID + " received `{payload}` from `{topic}` topic")
+    print(payload)
+    
 def subscribe(client: mqtt_client):
-    def on_message(client, userdata, msg):
-        payload = msg.payload.decode()
-        topic = msg.topic
-        print(BOT_ID + " received `{payload}` from `{topic}` topic")
-        
-
+    
     client.subscribe(MQTT_TOPIC)
     client.on_message = on_message
-
-    msg = "hi"
-    client.publish(MQTT_TOPIC, msg)
-
-    for x in range(10):
-        client.publish(MQTT_TOPIC, str(x))
-
-def publish(client):
-    msg_count = 1
-    while True:
-        time.sleep(1)
-        msg = f"messages: {msg_count}"
-        result = client.publish(MQTT_TOPIC, msg)
-        # result: [0, 1]
-        status = result[0]
-        if status == 0:
-            print(f"Send `{msg}` to topic `{MQTT_TOPIC}`")
-        else:
-            print(f"Failed to send message to topic {MQTT_TOPIC}")
-        msg_count += 1
-        if msg_count > 5:
-            break
 
 
 ##################################################
@@ -200,7 +175,7 @@ def goTo(targetLocation):
 while robot.step(duration) != -1:
     current_pos = supervisorNode.getPosition()
     # print(createRequest())
-    client.publish(MQTT_TOPIC, createRequest())
+    # client.publish(MQTT_TOPIC, createRequest())
     
     # print(BOT_ID + " DS N: " + str(DS_N.getValue()))
     # print(BOT_ID + " DS E: " + str(DS_E.getValue()))
