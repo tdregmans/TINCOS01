@@ -1,0 +1,50 @@
+# VRML_SIM R2023a utf8
+PROTO Pickup_robot [
+    field SFString name "unit0"
+    field SFColor color 1 0 0
+    field SFVec3f translation 0 0 0
+    unconnectedField  SFVec2f target 5 5
+    field SFString controller "pickup_robot_0"
+    field MFNode     children        []
+    unconnectedField  MFInt32   sensors  [0,0,0,0]
+    unconnectedField  SFString direction_lamps "off"
+    unconnectedField  SFBool emergency FALSE
+]
+
+{
+    DEF pickup_robot Robot {
+    translation IS translation
+    children 
+    [   
+         Transform {
+        translation 0 0 0.4
+        children IS children
+      }
+        
+        
+        Solid {
+        translation 0 0 0.02
+        children [
+            
+            DEF box Shape {
+            appearance PBRAppearance {
+                baseColor IS color
+                roughness 1
+                metalness 0
+            }
+            geometry Box {
+                size 0.1 0.1 0.05
+            }
+            }
+        ]
+        }
+        ]
+    name IS name
+    boundingObject USE box
+    controller "pickup_robot"
+    supervisor TRUE
+    controller IS controller
+
+
+    }
+}

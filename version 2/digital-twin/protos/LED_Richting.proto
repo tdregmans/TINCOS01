@@ -1,0 +1,31 @@
+# VRML_SIM R2022a utf8
+PROTO LED_Richting [
+    field SFColor       color           0.333333 0 0.498039
+    field SFVec3f       translation     0 0 0
+    field SFRotation	rotation 		0 1 0 -0.000795307
+    field SFFloat       IBLStrength     0
+    field   SFString     name         " "
+]
+
+
+{
+  DEF LED_Richting Solid {
+  translation IS translation
+  rotation IS rotation
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor IS color
+        roughness 1
+        metalness 0
+        IBLStrength IS IBLStrength
+      }
+      geometry Cone {
+        bottomRadius 0.005
+        height 0.01
+      }
+    }
+  ]
+  name IS name
+}
+}
