@@ -22,27 +22,28 @@ MQTT_EMERGENCY_TOPIC = "TINCOS/protocol/emergency"
 ################ MQTT CONNECTION #################
 ##################################################
 
+client = mqtt_client.Client(MQTT_CLIENTID)
+
 def connect_mqtt() -> mqtt_client:
-    def on_connect(client, userdata, flags, rc):
-        if rc == 0:
-            print("Connected to MQTT Broker!")
-        else:
-            print("Failed to connect, return code %d\n", rc)
+    # def on_connect(client, userdata, flags, rc):
+        # if rc == 0:
+            # print("Connected to MQTT Broker!")
+        # else:
+            # print("Failed to connect, return code %d\n", rc)
 
     client = mqtt_client.Client(MQTT_CLIENTID)
     # client.username_pw_set(username, password)
-    client.on_connect = on_connect
+    # client.on_connect = on_connect
     client.connect(MQTT_BROKER, MQTT_PORT)
     return client
-
-def on_message(client, userdata, msg):
-    payload = msg.payload.decode()
-    topic = msg.topic
-    print(BOT_ID + " received `{payload}` from `{topic}` topic")
-    print(payload)
     
 def subscribe(client: mqtt_client):
-    
+    def on_message(client, userdata, msg):
+        payload = msg.payload.decode()
+        topic = msg.topic
+        # print(payload)
+        executeServerCommand(payload)
+    print("subscribe on "+MQTT_TOPIC)
     client.subscribe(MQTT_TOPIC)
     client.on_message = on_message
 
@@ -56,13 +57,13 @@ print("Robot '"+str(BOT_ID)+"' started")
 # Set start and target positions
 if (BOT_ID == "bot1"):
     start_pos = [0, 0, 0]
-    target_pos = [-0.3, 0.4, 0]
 if (BOT_ID == "bot2"):
-    start_pos = [0.3, 0.4, 0]
-    target_pos = [-0.2, 0.4, 0]
+    start_pos = [0.1, 0.0, 0]
 if (BOT_ID == "bot3"):
-    start_pos = [0.0, 0.3, 0]
-    target_pos = [0, -0.3, 0]
+    start_pos = [0.0, 0.1, 0]
+
+trans = supervisorNode.getField("translation")
+trans.setSFVec3f(start_pos)
 
 STEP = 0.1
 # get the time step of the current world
@@ -83,9 +84,6 @@ DS_E.enable(timestep)
 DS_S.enable(timestep)
 DS_W.enable(timestep)
 
-trans = supervisorNode.getField("translation")
-# trans.setSFVec3f(supervisorNode.getField("startpoint"))
-trans.setSFVec3f(start_pos)
     
 client = connect_mqtt()
 subscribe(client)
@@ -169,31 +167,46 @@ def createRequest():
 def goTo(targetLocation):
     x = targetLocation["x"]
     y = targetLocation["y"]
-    trans.setSFVec3f([x, y, 0])
+    current_pos = supervisorNode.getPosition()
+    
+    # double check if targetLocation is free
+    if(targetLocation in calcuateObstacles()):
+        # do nothing
+        print("WARNING! BOT wanted to collide with obstacle")
+    else:
+        print(BOT_ID+" location change")
+        trans.setSFVec3f([x, y, 0])
 
+def executeServerCommand(payload):
+    request = json.loads(payload)
+    if (request["protocolVersion"] == 2.0):
+        data = request["data"]
+
+        if (data["target"] == BOT_ID):
+            sender = data["sender"]
+
+            targetLocation = data["msg"]["targetLocation"]
+
+            goTo(targetLocation)
+            
+        # else:
+        #     print("Recieved message that wasn't addressed to me.")
+    else:
+        if(request["protocolVersion"] < 2.0):
+            print("WARNING! Deprecated protocol was used.")
+        else:
+            print("ERROR! Didn't understand syntax of request bot.")
+
+client = connect_mqtt()
+subscribe(client)
+    
 # execute every second
 while robot.step(duration) != -1:
     current_pos = supervisorNode.getPosition()
-    # print(createRequest())
-    # client.publish(MQTT_TOPIC, createRequest())
-    
-    # print(BOT_ID + " DS N: " + str(DS_N.getValue()))
-    # print(BOT_ID + " DS E: " + str(DS_E.getValue()))
-    # print(BOT_ID + " DS S: " + str(DS_S.getValue()))
-    # print(BOT_ID + " DS W: " + str(DS_W.getValue()))
-    
-    if(target_pos == current_pos):
-        print(BOT_ID + " arrived at target position.")
-    
-    # get handle to translation field
-    # trans = supervisorNode.getField("translation")
-    # set position ; pos is a list with 3 elements : x , y and z coordinates
-    
-    # target_pos = supervisorNode.getField("endpoint")
-    # new_pos = [getCloser(current_pos[0], target_pos[0]), getCloser(current_pos[1], target_pos[1]), 0]
-    # trans.setSFVec3f(new_pos)
     
     updateLEDS()
+    client.publish(MQTT_TOPIC, createRequest())
+    client.loop(timeout=0.01, max_packets=1)
     
     
     

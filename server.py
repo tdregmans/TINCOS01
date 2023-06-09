@@ -29,7 +29,7 @@ for x in range(fieldSize):
 bots = []
 bots = ["bot1", "bot2", "bot3"] # hardcoded bot to assign targest, while there is no dashboard
 
-targetFields = [[0, 2], [0, 0], [8, 0]]
+targetFields = [[0, 0], [9, 9], [0, 0]]
 
 def coords2fieldId(coords):
     # from Webots coördinates to field index
@@ -39,8 +39,12 @@ def coords2fieldId(coords):
 
 def fieldId2coords(fieldId):
     # from Webots coördinates to field index
-    x = (fieldId[0] / 10) - 0.4
-    y = (fieldId[1] / 10) - 0.4
+    try:
+        x = (fieldId[0] / 10) - 0.4
+        y = (fieldId[1] / 10) - 0.4
+    except KeyError:
+        x = Null
+        y = Null
     return {"x": round(x,1), "y": round(y,1)}
 
 def printFields():
@@ -137,7 +141,10 @@ def processCommand(payload):
             obstacles = data["msg"]["obstacles"]
 
             # process location in memory
-            target = processLocation(sender, currentLocation, obstacles)
+            try:
+                target = processLocation(sender, currentLocation, obstacles)
+            except IndexError:
+                target = currentLocation
             
             response = {
                 "data": 
