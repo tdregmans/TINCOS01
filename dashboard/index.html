@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>TINCOS01 - Dashboard</title>
+        <style>
+            body {
+                padding: 0%;
+                margin: 0%;
+                background-color: cornflowerblue;
+            }
+        
+            #main {
+                border: none;
+                border-radius: 20px;
+                padding: 25px;
+                margin: 15%;
+        
+                background-color: azure;
+            }
+        </style>
+    </head>
+    <body>
+
+        <div id="main">
+            <h1>Dashboard</h1>
+            <hr>
+            <canvas class="myCanvas" width="500" height="500" style="border:1px solid #000000;">
+                Your browser does not support the HTML canvas tag.
+            </canvas>
+
+            <div style="border:1px solid #000000;">
+                test
+            </div>
+            
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/4.2.7/mqtt.min.js"></script>
+
+            <script>
+
+                // Define constant canvas
+                const canvas = document.querySelector('.myCanvas');
+                const width = canvas.width; // = window.innerWidth;
+                const height = canvas.height; // = window.innerHeight;
+                const ctx = canvas.getContext('2d');
+
+                // Define bot colors
+                const bot1Color = "rgb(255, 0, 0)";
+                const bot2Color = "rgb(0, 255, 0)";
+                const bot3Color = "rgb(0, 0, 255)";
+
+                const mqttBroker = "broker.mqtt-dashboard.com:1883";
+                const mqttTopic = "TINCOS/protocol/communication";
+
+                // MQTT definitions
+                const client  = mqtt.connect(mqttBroker);
+                client.on('connect', function () {
+                client.subscribe('presence', function (err) {
+                    if (!err) {
+                    client.publish('presence', 'Hello mqtt')
+                    }
+                })
+                })
+
+                client.on('message', function (topic, message) {
+                // message is Buffer
+                console.log(message.toString())
+                client.end()
+                })
+                
+                drawObstacle(3, 9);
+
+                function drawObstacle(x, y) {
+                    ctx.fillStyle = "rgb(0, 0, 0)";
+                    ctx.fillRect(x*50, y*50, 50, 50);
+                }
+
+                function drawBot(x, y, color) {
+                    ctx.fillStyle = color;
+                    ctx.fillRect(x*50, y*50, 50, 50);
+                }
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                drawBot(0,0, bot1Color);
+
+                
+            </script>
+
+https://stackoverflow.com/questions/76438587/mqtt-js-uncaught-typeerror-n-createconnection-is-not-a-function
+
+            <br>
+        </div>
+
+        <script>
+
+            // Client.on('message', function (topic, message) {
+            //     console.log('Client received message on topic', topic, ':', message.toString());
+
+            //     const li = document.createElement('li');
+            //     li.textContent = message.toString();
+
+            //     console.log(document.getElementById('message').value);
+            //     if (document.getElementById('message').value === message.toString()) {
+            //         li.classList.add('my-messages');
+            //     }
+            //     document.getElementById('message').value = '';
+
+            //     document.getElementById('messages').appendChild(li);
+            // });
+
+            // Client.publish('chat/message', message);
+
+
+        
+        </script>
+    </body>
+</html>
