@@ -43,7 +43,7 @@ def subscribe(client: mqtt_client):
         topic = msg.topic
         # print(payload)
         executeServerCommand(payload)
-    print("subscribe on "+MQTT_TOPIC)
+    print(BOT_ID + " subscribed on " + MQTT_TOPIC)
     client.subscribe(MQTT_TOPIC)
     client.on_message = on_message
 
@@ -52,7 +52,7 @@ def subscribe(client: mqtt_client):
 ################## WEBOTS CODE ###################
 ##################################################
 
-print("Robot '"+str(BOT_ID)+"' started")
+print(BOT_ID + " started")
 
 # Set start and target positions
 if (BOT_ID == "bot1"):
@@ -83,8 +83,9 @@ DS_N.enable(timestep)
 DS_E.enable(timestep)
 DS_S.enable(timestep)
 DS_W.enable(timestep)
+current_pos = supervisorNode.getPosition()
+print(BOT_ID + " location: " + str(current_pos))
 
-    
 client = connect_mqtt()
 subscribe(client)
 
@@ -172,9 +173,9 @@ def goTo(targetLocation):
     # double check if targetLocation is free
     if(targetLocation in calcuateObstacles()):
         # do nothing
-        print("WARNING! BOT wanted to collide with obstacle")
+        print(BOT_ID + ": WARNING! wanted to collide with obstacle")
     else:
-        print(BOT_ID+" location change")
+        print(BOT_ID + " location change; from " + str(current_pos) + " to " + str(targetLocation))
         trans.setSFVec3f([x, y, 0])
 
 def executeServerCommand(payload):
@@ -206,7 +207,7 @@ while robot.step(duration) != -1:
     
     updateLEDS()
     client.publish(MQTT_TOPIC, createRequest())
-    client.loop(timeout=0.01, max_packets=1)
+    client.loop(timeout=0.01, max_packets=10)
     
     
     

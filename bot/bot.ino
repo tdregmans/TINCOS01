@@ -14,10 +14,10 @@
 #include <PubSubClient.h>
 #include "password.h"
 
-#define LED_NORTH 34
-#define LED_EAST 35
-#define LED_SOUTH 32
-#define LED_WEST 33
+#define LED_NORTH 32
+#define LED_EAST 12
+#define LED_SOUTH 33
+#define LED_WEST 13
 #define BUTTON 2
 
 
@@ -105,13 +105,7 @@ void reconnect() {
   }
 }
 
-void callEmergency() {
-//  while (!client.connected()) {
-//    reconnect();
-//  }
-//  client.publish(mqtt_emergency_topic, "1");
-
-  Serial.println("Interupt");
+void calibrateLEDs() {
 
   digitalWrite(LED_NORTH, HIGH);
   digitalWrite(LED_EAST, HIGH);
@@ -119,12 +113,59 @@ void callEmergency() {
   digitalWrite(LED_WEST, HIGH);
 
   delay(500);
+  
+  digitalWrite(LED_NORTH, HIGH);
+  digitalWrite(LED_EAST, LOW);
+  digitalWrite(LED_SOUTH, LOW);
+  digitalWrite(LED_WEST, LOW);
 
+  delay(500);
+  
+  digitalWrite(LED_NORTH, LOW);
+  digitalWrite(LED_EAST, HIGH);
+  digitalWrite(LED_SOUTH, LOW);
+  digitalWrite(LED_WEST, LOW);
+
+  delay(500);
+  
+  digitalWrite(LED_NORTH, LOW);
+  digitalWrite(LED_EAST, LOW);
+  digitalWrite(LED_SOUTH, HIGH);
+  digitalWrite(LED_WEST, LOW);
+
+  delay(500);
+  
+  digitalWrite(LED_NORTH, LOW);
+  digitalWrite(LED_EAST, LOW);
+  digitalWrite(LED_SOUTH, LOW);
+  digitalWrite(LED_WEST, HIGH);
+
+  delay(500);
   
   digitalWrite(LED_NORTH, LOW);
   digitalWrite(LED_EAST, LOW);
   digitalWrite(LED_SOUTH, LOW);
   digitalWrite(LED_WEST, LOW);
+}
+
+void emergency() {
+  // send signal to server
+
+  for (int i = 0; i < 10; i++) {
+      if ((i % 2) == 0) {
+        digitalWrite(LED_NORTH, HIGH);
+        digitalWrite(LED_EAST, HIGH);
+        digitalWrite(LED_SOUTH, HIGH);
+        digitalWrite(LED_WEST, HIGH);
+      }
+      else {
+        digitalWrite(LED_NORTH, LOW);
+        digitalWrite(LED_EAST, LOW);
+        digitalWrite(LED_SOUTH, LOW);
+        digitalWrite(LED_WEST, LOW);
+      }
+      delay(40);
+  }
 }
 
 void setup() {
@@ -137,12 +178,12 @@ void setup() {
   pinMode(LED_SOUTH, OUTPUT);
   pinMode(LED_WEST, OUTPUT);
   pinMode(BUTTON, INPUT_PULLUP);
-
-  attachInterrupt(digitalPinToInterrupt(BUTTON), callEmergency, RISING);
   
   setup_wifi();
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
+
+  calibrateLEDs();
 }
 
 void loop() {
@@ -160,5 +201,9 @@ void loop() {
     Serial.print("Publish message: ");
     Serial.println(msg);
     client.publish(mqtt_topic, msg);
+  }
+
+  if (!digitalRead(BUTTON)) {
+      emergency();
   }
 }

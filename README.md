@@ -15,7 +15,7 @@ De opdracht bestaat uit 3 delen:
 - De clients, gecodeerd in Python/cpp
 - Het dashboard, gecodeerd in html/javascript
 
-![Diagram](diagram.png "Diagram van opdracht")
+![Diagram](architecture-diagram.png "Diagram van opdracht")
 
 ### Server
 
@@ -29,6 +29,9 @@ Er zijn 2 soorten clients:
 
 Een bot is een fysieke ESP32 met cpp code. Het communiceert middels MQTT met de server.
 Het heeft 4 LED's om de richtingen aan te geven en een stopknop, om alles te laten stoppen.
+
+De fysieke hardware moet als volgt worden aangesloten:
+![Diagram](wiring-diagram.png "Diagram van opdracht")
 
 #### Digital Twin
 

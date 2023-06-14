@@ -29,7 +29,7 @@ for x in range(fieldSize):
 bots = []
 bots = ["bot1", "bot2", "bot3"] # hardcoded bot to assign targest, while there is no dashboard
 
-targetFields = [[0, 0], [9, 9], [0, 0]]
+targetFields = [[0, 1], [9, 0], [0, 0]]
 
 def coords2fieldId(coords):
     # from Webots coördinates to field index
