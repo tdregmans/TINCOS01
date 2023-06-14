@@ -28,7 +28,6 @@
 const char* mqtt_server = "broker.mqtt-dashboard.com";
 const char* mqtt_clientId = "TINCOS01-BHT-" + BOT_ID;
 const char* mqtt_topic = "TINCOS/protocol/communication";
-const char* mqtt_emergency_topic = "TINCOS/protocol/emergency";
 
 volatile bool shouldTerminate = false;
 
@@ -63,10 +62,10 @@ void setup_wifi() {
   Serial.println(WiFi.localIP());
 }
 
-int findIndex(String string, String sub) {
-  while ()
-  return -1;
-}
+//int findIndex(String string, String sub) {
+//  while ()
+//  return -1;
+//}
 
 void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Message arrived [");
@@ -97,10 +96,9 @@ void reconnect() {
       Serial.println("connected to mqtt");
       
       client.subscribe(mqtt_topic);
-      client.subscribe(mqtt_emergency_topic);
       String message = clientId + "=" + mqtt_clientId;
       
-      client.publish(mqtt_topic, "test"); // put message in, to let server know client is connected
+//      client.publish(mqtt_topic, "test"); // put message in, to let server know client is connected
       
     } 
     else {
@@ -196,20 +194,14 @@ void setup() {
   calibrateLEDs();
 }
 
-String msgStop = ""{
-                      "data":
-                        {
-                          "sender": "bot1",
-                          "emergency": 1
-                        },
-                        "protocolVersion": 3.0
-                    }""
+
 
 void loop() {
   
   if (shouldTerminate){
-    
-    client.publish(mqtt_topic, msgStop);
+//    String msgStop = ;
+//    Serial.println(msgStop);
+    client.publish(mqtt_topic, "{\"data\":{\"sender\": \"bot1\", \"emergency\": 1}, \"protocolVersion\": 3.0}");
     return;
   }
 

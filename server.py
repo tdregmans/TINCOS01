@@ -14,6 +14,9 @@ import time
 import json
 import math
 
+
+import sys
+
 MQTT_BROKER = "broker.mqtt-dashboard.com" 
 MQTT_PORT = 1883
 MQTT_CLIENTID = "server"
@@ -132,6 +135,45 @@ def processCommand(payload):
         data = request["data"]
 
         if (data["target"] == MQTT_CLIENTID):
+            sender = data["sender"]
+
+            if(not(sender in bots)):
+                bots.append(sender)
+            print(sender)
+            currentLocation = data["msg"]["currentLocation"]
+            obstacles = data["msg"]["obstacles"]
+
+            # process location in memory
+            try:
+                target = processLocation(sender, currentLocation, obstacles)
+            except IndexError:
+                target = currentLocation
+            
+            response = {
+                "data": 
+                {
+                    "sender": MQTT_CLIENTID,
+                    "target": sender,
+                    "msg":
+                    {
+                        "targetLocation": fieldId2coords(target)
+                    }
+                },
+                "protocolVersion": 2.0
+            }
+
+            # send new targetLocation to bot
+            client.publish(MQTT_TOPIC, json.dumps(response))
+            
+        # else:
+        #     print("Recieved message that wasn't addressed to me.")
+    elif (request["protocolVersion"] == 3.0):
+        data = request["data"]
+
+        if (data["emergency"]):
+            print("EMERGENCY STOP")
+            sys.exit()
+        elif (data["target"] == MQTT_CLIENTID):
             sender = data["sender"]
 
             if(not(sender in bots)):
