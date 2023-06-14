@@ -30,6 +30,8 @@ const char* mqtt_clientId = "TINCOS01-BHT-" + BOT_ID;
 const char* mqtt_topic = "TINCOS/protocol/communication";
 const char* mqtt_emergency_topic = "TINCOS/protocol/emergency";
 
+volatile bool shouldTerminate = false;
+
 WiFiClient espClient;
 PubSubClient client(espClient);
 unsigned long lastMsg = 0;
@@ -150,6 +152,7 @@ void calibrateLEDs() {
 
 void emergency() {
   // send signal to server
+  shouldTerminate = true;
 
   for (int i = 0; i < 10; i++) {
       if ((i % 2) == 0) {
@@ -165,6 +168,7 @@ void emergency() {
         digitalWrite(LED_WEST, LOW);
       }
       delay(40);
+      
   }
 }
 
@@ -186,7 +190,22 @@ void setup() {
   calibrateLEDs();
 }
 
+String msgStop = ""{
+                      "data":
+                        {
+                          "sender": "bot1",
+                          "emergency": 1
+                        },
+                        "protocolVersion": 3.0
+                    }""
+
 void loop() {
+  
+  if (shouldTerminate){
+    
+    client.publish(mqtt_topic, msgStop);
+    return;
+  }
 
   if (!client.connected()) {
     reconnect();
