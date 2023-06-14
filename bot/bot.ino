@@ -1,19 +1,17 @@
 /*
   bot.ino
 
-  version 4.0
+  version 3.0
 
   CMI-TI 22 TINCOS01
   Studenten: Bartholomeus Petrus, Hidde-Jan Daniels, Thijs Dregmans
   Connected Systems
-  Last edited: 2023-06-14
+  Last edited: 2023-06-08
 
 */
 
 #include <WiFi.h>
 #include <PubSubClient.h>
-
-#include <ArduinoJson.h>
 #include "password.h"
 
 #define LED_NORTH 32
@@ -25,18 +23,12 @@
 
 #define MSG_BUFFER_SIZE  (50)
 
-const char* BOT_ID = "bot1"; // Must be different for each bot
+#define BOT_ID 1 // Must be different for each bot
 
 const char* mqtt_server = "broker.mqtt-dashboard.com";
-const char* mqtt_clientId = "TINCOS01-BHT-digitalTwin";
+const char* mqtt_clientId = "TINCOS01-BHT-" + BOT_ID;
 const char* mqtt_topic = "TINCOS/protocol/communication";
 const char* mqtt_emergency_topic = "TINCOS/protocol/emergency";
-
-char* targetX = 0;
-char* targetY = 0;
-
-char* currentX = 0;
-char* currentY = 0;
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -82,10 +74,6 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.println(message);
 
   // Implement use of protocol
-  if(readReponseContent()) {
-//    printclientData();
-Serial.println("response");
-  }
 
 }
 
@@ -180,41 +168,6 @@ void emergency() {
   }
 }
 
-bool readReponseContent() {
-  // Compute optimal size of the JSON buffer according to what we need to parse.
-  // See https://bblanchon.github.io/ArduinoJson/assistant/
-  const size_t bufferSize = JSON_ARRAY_SIZE(1) + JSON_OBJECT_SIZE(1) + 
-      2*JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(4) + JSON_OBJECT_SIZE(5) + 
-      JSON_OBJECT_SIZE(6) + JSON_OBJECT_SIZE(12) + 390;
-  DynamicJsonBuffer jsonBuffer(bufferSize);
-
-  JsonObject& root = jsonBuffer.parseObject(client);
-
-  if (!root.success()) {
-    Serial.println("JSON parsing failed!");
-    return false;
-  }
-
-  // Here were copy the strings we're interested in using to your struct data
-  if(root["data"]["target"] == BOT_ID) {
-      Serial.println("command received");
-
-      // update target
-      strcpy(targetX, root["data"]["msg"]["targetLocation"]["x"]);
-      strcpy(targetY, root["data"]["msg"]["targetLocation"]["y"]);
-
-  }
-  if (root["data"]["sender"] == BOT_ID) {
-      Serial.println("location received");
-
-      // update location
-      strcpy(currentX, (root["data"]["msg"]["currentLocation"]["x"]));
-      strcpy(currentY, (root["data"]["msg"]["currentLocation"]["y"]));
-  }
-
-  return true;
-}
-
 void setup() {
   Serial.begin(115200);
   
@@ -230,8 +183,6 @@ void setup() {
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
 
-  StaticJsonBuffer<200> jsonBuffer;
-
   calibrateLEDs();
 }
 
@@ -242,15 +193,15 @@ void loop() {
   }
   client.loop();
 
-//  unsigned long now = millis();
-//  if (now - lastMsg > 2000) {
-//    lastMsg = now;
-//    ++value;
-//    snprintf (msg, MSG_BUFFER_SIZE, "hello world #%ld", value);
-//    Serial.print("Publish message: ");
-//    Serial.println(msg);
-//    client.publish(mqtt_topic, msg);
-//  }
+  unsigned long now = millis();
+  if (now - lastMsg > 2000) {
+    lastMsg = now;
+    ++value;
+    snprintf (msg, MSG_BUFFER_SIZE, "hello world #%ld", value);
+    Serial.print("Publish message: ");
+    Serial.println(msg);
+    client.publish(mqtt_topic, msg);
+  }
 
   if (!digitalRead(BUTTON)) {
       emergency();
