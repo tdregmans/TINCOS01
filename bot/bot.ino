@@ -1,12 +1,12 @@
 /*
   bot.ino
 
-  version 3.0
+  version 5.0
 
   CMI-TI 22 TINCOS01
   Studenten: Bartholomeus Petrus, Hidde-Jan Daniels, Thijs Dregmans
   Connected Systems
-  Last edited: 2023-06-08
+  Last edited: 2023-06-14
 
 */
 
@@ -61,6 +61,11 @@ void setup_wifi() {
   Serial.println(WiFi.localIP());
 }
 
+int findIndex(String string, String sub) {
+  while ()
+  return -1;
+}
+
 void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Message arrived [");
   Serial.print(topic);
@@ -74,7 +79,8 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.println(message);
 
   // Implement use of protocol
-
+  
+  
 }
 
 void reconnect() {
@@ -193,15 +199,15 @@ void loop() {
   }
   client.loop();
 
-  unsigned long now = millis();
-  if (now - lastMsg > 2000) {
-    lastMsg = now;
-    ++value;
-    snprintf (msg, MSG_BUFFER_SIZE, "hello world #%ld", value);
-    Serial.print("Publish message: ");
-    Serial.println(msg);
-    client.publish(mqtt_topic, msg);
-  }
+    //  unsigned long now = millis();
+    //  if (now - lastMsg > 2000) {
+    //    lastMsg = now;
+    //    ++value;
+    //    snprintf (msg, MSG_BUFFER_SIZE, "hello world #%ld", value);
+    //    Serial.print("Publish message: ");
+    //    Serial.println(msg);
+    //    client.publish(mqtt_topic, msg);
+    //  }
 
   if (!digitalRead(BUTTON)) {
       emergency();
