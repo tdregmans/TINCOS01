@@ -1,18 +1,30 @@
-# Practicum 2
-Bartholomeus Petrus
-Hidde-Jan Daniëls
-Thijs Dregmans
-2023-06-15
-In dit readme bestand spreken we het protocol af waarmee de robots en hun Digital Twins in Webots communiceren.
+# TINCOS01
+Connected Systems
+
+Team members:
+- Hidde-Jan Daniëls
+- Bartholomeus Petrus
+- Thijs Dregmans
+
+Last edited on 2023-06-16
+
+## Protocol
+In dit bestand spreken we het protocol af waarmee de robots en hun Digital Twins in Webots communiceren.
 
 ### Specificaties
 
 #### Semantic
 De volgende dingen moeten gecommuniceerd worden:
 
-- De robot vertelt de server zijn locatie, op de x en y as.
-- De robot vertelt de server de veranderende obstakels, met x en y coördinaten*.
-- De robot vertelt de server zijn geplande verplaatsing, met de doel coördinaten.
+- De Digital Twin vertelt de server zijn locatie, op de x en y as.
+- De Digital Twin vertelt de server de veranderende obstakels, met x en y coördinaten*.
+- De server vertelt de Digital Twin de richting waarin hij moet bewegen.
+- De server vertelt de Digital Twin welke LED aan moet gaan.
+- De server vertelt de fysieke bot welke LED aan moet gaan.
+- Het dashboard leest de berichten van de robot naar de server, en noteert de robot.
+- Het dashboard vertelt de server waar alle bots uiteindelijk terecht moeten komen.
+- Het dashboard roept een nood toestand uit.
+- De fysieke robot roept een nood toestand uit.
 
 - Obstakels hoeven maar 1x gecommuniceerd te wordn. 
 * Obstakels zijn altijd 1 bij 1.

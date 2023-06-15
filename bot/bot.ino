@@ -13,6 +13,7 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
 #include "password.h"
+// password.h names the ssid and pass of the network. This is put in not-included header to keep my wifi password a secret. 
 
 #define LED_NORTH 32
 #define LED_EAST 12

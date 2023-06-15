@@ -11,11 +11,16 @@ Last edited on 2023-06-16
 ## Opdracht
 
 De opdracht bestaat uit 3 delen:
-- De server, gecodeerd in Python
-- De clients, gecodeerd in Python/cpp
-- Het dashboard, gecodeerd in html/javascript
+- Server: de server is gemaakt in Python. zie `server.py`
+- Fysieke bots: deze bestaat uit een ESP32 met 4 LEDs en een knop, geprogrammeerd in cpp. zie `bot/bot.ino`
+- Digital twins: deze runnen in Webots. De wereld is te vinden in `webots-world/worlds/TINCOS01.wbt` De Digital Twins zijn geprogrammeerd in Python. zie `webots-world/controllers/bot-controller/bot-controller.py`
+- Dashboard: deze is geprogrammeerd in [enter language dashboard]. zie `dashboard/`
 
+## Architectuur
+Hieronder ziet u een afbeelding van de architectuur.
 ![Diagram](architecture-diagram.png "Diagram van opdracht")
+
+Alles verbint met dezelfde mqtt-broker. De server leest alle berichten, en bepaalt vervolgens wat er moet gebeuren. De server geeft specifieke bots opdrachten door middel van het addresseren van die specifieke bot. Dit gebeurt middels ons opgestelde protocol. zie `protocol.md`
 
 ### Server
 

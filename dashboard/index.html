@@ -46,6 +46,7 @@
                 const bot1Color = "rgb(255, 0, 0)";
                 const bot2Color = "rgb(0, 255, 0)";
                 const bot3Color = "rgb(0, 0, 255)";
+                // hardcoded now. Maybe make this dynamic in the future!
 
                 const mqttBroker = "broker.mqtt-dashboard.com:1883";
                 const mqttTopic = "TINCOS/protocol/communication";
@@ -61,11 +62,13 @@
                 })
 
                 client.on('message', function (topic, message) {
-                // message is Buffer
-                console.log(message.toString())
-                client.end()
-                })
-                
+                    // message is Buffer
+                    console.log(message.toString())
+                    client.end()
+                });
+
+                client.publish(mqttTopic, message);
+
                 drawObstacle(3, 9);
 
                 function drawObstacle(x, y) {
@@ -82,35 +85,10 @@
 
                 drawBot(0,0, bot1Color);
 
-                
+                // https://stackoverflow.com/questions/76438587/mqtt-js-uncaught-typeerror-n-createconnection-is-not-a-function
+                // something is wrong: JS MQTT can only work with websocets, says this article. We avoided websocets because they are hard to deal with.
             </script>
-
-https://stackoverflow.com/questions/76438587/mqtt-js-uncaught-typeerror-n-createconnection-is-not-a-function
-
             <br>
         </div>
-
-        <script>
-
-            // Client.on('message', function (topic, message) {
-            //     console.log('Client received message on topic', topic, ':', message.toString());
-
-            //     const li = document.createElement('li');
-            //     li.textContent = message.toString();
-
-            //     console.log(document.getElementById('message').value);
-            //     if (document.getElementById('message').value === message.toString()) {
-            //         li.classList.add('my-messages');
-            //     }
-            //     document.getElementById('message').value = '';
-
-            //     document.getElementById('messages').appendChild(li);
-            // });
-
-            // Client.publish('chat/message', message);
-
-
-        
-        </script>
     </body>
 </html>
