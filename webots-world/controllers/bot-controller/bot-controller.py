@@ -104,33 +104,38 @@ def calcuateObstacles():
     obstacles = []
     current_pos = supervisorNode.getPosition()
     # North
-    if (DS_N.getValue() < STEP):
+    if (round(DS_N.getValue(), 2) < STEP):
         obstacle = {
             "x": round(current_pos[0] + 0.1, 1),
             "y": round(current_pos[1], 1)
         }
         obstacles.append(obstacle)
     # East
-    if (DS_E.getValue() < STEP):
+    if (round(DS_E.getValue(), 2) < STEP):
         obstacle = {
             "x": round(current_pos[0], 1),
             "y": round(current_pos[1] - 0.1, 1)
         }
         obstacles.append(obstacle)
     # South
-    if (DS_S.getValue() < STEP):
+    if (round(DS_S.getValue(), 2) < STEP):
         obstacle = {
             "x": round(current_pos[0] - 0.1, 1),
             "y": round(current_pos[1], 1)
         }
         obstacles.append(obstacle)
     # West
-    if (DS_W.getValue() < STEP):
+    if (round(DS_W.getValue(), 2) < STEP):
         obstacle = {
             "x": round(current_pos[0], 1),
             "y": round(current_pos[1] + 0.1, 1)
         }
-        obstacles.append(obstacle)
+        obstacles.append(obstacle) # something is wrong with the West
+
+    print(round(DS_N.getValue(), 2))
+    print(round(DS_E.getValue(), 2))
+    print(round(DS_S.getValue(), 2))
+    print(round(DS_W.getValue(), 2))
     return obstacles
 
 def createRequest():
@@ -166,34 +171,57 @@ def callEmergency():
 
 def isEmergency():
     return emergency
+
+def isEmptyField(x, y):
+    # # double check if targetLocation is free
+    location = {
+        "x": round(x, 2),
+        "y": round(y, 2)
+    }
+    print(calcuateObstacles())
+    return not location in calcuateObstacles()
     
 def goTo(direction):
-    current_pos = {'x': supervisorNode.getPosition()[0], 'y':supervisorNode.getPosition()[1]}
-    print(direction)
+    currentX = round(supervisorNode.getPosition()[0], 2)
+    currentY = round(supervisorNode.getPosition()[1], 2)
     if (direction == "N"):
-        targetLocation = {'x': supervisorNode.getPosition()[0] + 0.1, 'y':supervisorNode.getPosition()[1]}
-    if (direction == "E"):
-        targetLocation = {'x': supervisorNode.getPosition()[0] - 0.1, 'y':supervisorNode.getPosition()[1]}
-    if (direction == "S"):
-        targetLocation = {'x': supervisorNode.getPosition()[0], 'y':supervisorNode.getPosition()[1] + 0.1}
-    if (direction == "W"):
-        targetLocation = {'x': supervisorNode.getPosition()[0], 'y':supervisorNode.getPosition()[1] - 0.1}
-    else:
-        targetLocation = current_pos
-    
-    x = targetLocation["x"]
-    y = targetLocation["y"]
-    
-    # double check if targetLocation is free
-    if(targetLocation in calcuateObstacles()):
-        # do nothing
-        print(BOT_ID + ": WARNING! wanted to collide with obstacle")
-    else:
-        if(current_pos == targetLocation):
-            print(BOT_ID + " didn't change location. current location: " + str(current_pos))
+        targetX = currentX + 0.1
+        targetY = currentY
+        if isEmptyField(targetX, targetY):
+            trans.setSFVec3f([targetX, targetY, 0])
         else:
-            print(BOT_ID + " location change: from " + str(current_pos) + " to " + str(targetLocation))
-            trans.setSFVec3f([x, y, 0])
+            print(BOT_ID + " wanted to collide with obstacle!")
+    elif (direction == "E"):
+        targetX = currentX
+        targetY = currentY + -0.1
+        if isEmptyField(targetX, targetY):
+            trans.setSFVec3f([targetX, targetY, 0])
+        else:
+            print(BOT_ID + " wanted to collide with obstacle!")
+    elif (direction == "S"):
+        targetX = currentX + -0.1
+        targetY = currentY
+        if isEmptyField(targetX, targetY):
+            trans.setSFVec3f([targetX, targetY, 0])
+        else:
+            print(BOT_ID + " wanted to collide with obstacle!")
+    elif (direction == "W"):
+        targetX = currentX
+        targetY = currentY + 0.1
+        if isEmptyField(targetX, targetY):
+            trans.setSFVec3f([targetX, targetY, 0])
+        else:
+            print(BOT_ID + " wanted to collide with obstacle!")
+    else:
+        print(BOT_ID + " didn't change location. current location: " + str(current_pos))
+    # print(supervisorNode.getPosition()[0] + -0.1)
+    print([currentX, currentY])
+    
+    # x = targetLocation["x"]
+    # y = targetLocation["y"]
+    
+
+
 
 def turnOnLed(led):
     LED_N.set(led == "N")

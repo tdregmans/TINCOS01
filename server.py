@@ -34,11 +34,11 @@ for x in range(fieldSize):
 
 # global variable that stores the bots in the program
 # bots = []
-bots = ["bot1", "bot2", "bot3"] 
+bots = ["bot1"] 
 # hardcoded bot to assign targest, while there is no dashboard
 
 # global variable that stores the targetFields that the bots want to go to
-targetFields = [[0, 1], [9, 0], [0, 0]]
+targetFields = [[0, 5]]
 # hardcoded fields, while there is no dashboard 
 
 # helper-function: converts Webots coördinates to fields
@@ -130,9 +130,9 @@ def processLocation(sender, currentLocation, obstacles):
     
     possibleNewLocations = [
         {"direction": "N", "coords": [x + 1, y]},
-        {"direction": "E", "coords": [x - 1, y]},
-        {"direction": "S", "coords": [x, y + 1]},
-        {"direction": "W", "coords": [x, y - 1]}]
+        {"direction": "E", "coords": [x, y - 1]},
+        {"direction": "S", "coords": [x - 1, y]},
+        {"direction": "W", "coords": [x, y + 1]}]
     # check for obstacles
     for location in possibleNewLocations:
         x = location["coords"][0]
@@ -142,13 +142,16 @@ def processLocation(sender, currentLocation, obstacles):
 
     newLocation = {"direction": "N", "coords": [x + 1, y]}
 
-    if distance([x, y], target) <= 0.05:
+    if [currentLocation["x"], currentLocation["y"]] == target:
         print(sender + " reached destination")
         sys.exit()
     else:
         for possibleNewLocation in possibleNewLocations:
             if(distance(possibleNewLocation["coords"], target) < distance(newLocation["coords"], target)):
                 newLocation = possibleNewLocation
+
+    # debug option: print coords
+    print(fieldId2coords(newLocation["coords"]))
     return newLocation["direction"]
 
 # process the incomming command from server

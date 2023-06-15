@@ -62,6 +62,7 @@ void setup_wifi() {
   Serial.println(WiFi.localIP());
 }
 
+// source of getValue method: https://stackoverflow.com/questions/9072320/split-string-into-string-array
 String getValue(String data, char separator, int index)
 {
   int found = 0;
