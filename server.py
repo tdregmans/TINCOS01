@@ -5,7 +5,7 @@
  #  CMI-TI 22 TINCOS01
  #  Studenten: Bartholomeus Petrus, Hidde-Jan Daniels, Thijs Dregmans
  #  Connected Systems
- #  Last edited: 2023-06-09
+ #  Last edited: 2023-06-15
  #
 
 # import libaries
@@ -19,7 +19,7 @@ import sys
 MQTT_BROKER = "broker.mqtt-dashboard.com" 
 MQTT_PORT = 1883
 MQTT_CLIENTID = "server"
-MQTT_TOPIC = "TINCOS/protocol/communication"
+MQTT_TOPIC = "TINCOS/comms"
 MQTT_EMERGENCY_TOPIC = "TINCOS/protocol/emergency"
 
 # global emergency variable
@@ -153,7 +153,7 @@ def processCommand(payload):
         if (data["emergency"]):
             print("EMERGENCY STOP")
             emergency = 1
-            # sys.exit()
+            sys.exit()
         elif (data["target"] == MQTT_CLIENTID):
             sender = data["sender"]
 

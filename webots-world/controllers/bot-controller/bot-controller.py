@@ -15,7 +15,7 @@ BOT_ID = robot.getName()
 MQTT_BROKER = "broker.mqtt-dashboard.com" 
 MQTT_PORT = 1883
 MQTT_CLIENTID = "TINCOS01-BHT-" + str(BOT_ID) + "-DT" # DT means Digital Twin
-MQTT_TOPIC = "TINCOS/protocol/communication"
+MQTT_TOPIC = "TINCOS/comms"
 MQTT_EMERGENCY_TOPIC = "TINCOS/protocol/emergency"
 
 global emergency
@@ -172,6 +172,10 @@ def createRequest():
 
 def callEmergency():
     print(BOT_ID + " stopped for emergency")
+    sys.exit()
+
+def isEmergency():
+    return emergency
     
 def goTo(targetLocation):
     x = targetLocation["x"]
@@ -193,6 +197,7 @@ def executeServerCommand(payload):
     request = json.loads(payload)
     if (request["protocolVersion"] == 3.0):
         data = request["data"]
+        print(request)
         if (data["emergency"] == 1):
             callEmergency()
         elif (data["target"] == BOT_ID):
@@ -218,6 +223,14 @@ subscribe(client)
 while robot.step(duration) != -1:
     current_pos = supervisorNode.getPosition()
     
-    updateLEDS()
+    
     client.publish(MQTT_TOPIC, createRequest())
-    client.loop(timeout=0.01, max_packets=10)
+    client.loop(timeout=0.01, max_packets=10000)
+    # print(isEmergency())
+    updateLEDS()
+    if(isEmergency() == 1):
+        print(BOT_ID + " stopped for emergency")
+        sys.exit()
+    
+    
+    
