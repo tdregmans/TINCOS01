@@ -5,7 +5,7 @@
  #  CMI-TI 22 TINCOS01
  #  Studenten: Bartholomeus Petrus, Hidde-Jan Daniels, Thijs Dregmans
  #  Connected Systems
- #  Last edited: 2023-06-15
+ #  Last edited: 2023-06-16
  #
 
 # import libaries
@@ -21,6 +21,8 @@ MQTT_PORT = 1883
 MQTT_CLIENTID = "server"
 MQTT_TOPIC = "TINCOS/comms"
 MQTT_EMERGENCY_TOPIC = "TINCOS/protocol/emergency"
+
+DASHBOARD_CLIENTID = "dashboard"
 
 # global emergency variable
 global emergency
@@ -171,6 +173,16 @@ def processLocation(sender, currentLocation, obstacles):
     print(fieldId2coords(newLocation["coords"]))
     return newLocation["direction"]
 
+def updateTargetLocations(data):
+    targets = data["msg"]["targetFields"]
+    global targetFields
+    targetFields = []
+    try:
+        for bot in bots:
+            targetFields.append(target[bot])
+    except IndexError:
+        print("INDEXERROR! Dashboard did't give target coords for all bots!") 
+
 # process the incomming command from server
 def processCommand(payload):
     global emergency
@@ -185,38 +197,43 @@ def processCommand(payload):
         elif (data["target"] == MQTT_CLIENTID):
             sender = data["sender"]
 
-            # add bot to global bots list
-            if(not(sender in bots)):
-                bots.append(sender)
+            if sender == DASHBOARD_CLIENTID:
+                # sender is dashboard
+                updateTargetLocations(data)
+            else:
+                # sender is a bot
+                # add bot to global bots list
+                if(not(sender in bots)):
+                    bots.append(sender)
 
-            currentLocation = data["msg"]["currentLocation"]
-            obstacles = data["msg"]["obstacles"]
+                currentLocation = data["msg"]["currentLocation"]
+                obstacles = data["msg"]["obstacles"]
 
-            # process location in memory
-            try:
-                target = processLocation(sender, currentLocation, obstacles)
-            except IndexError:
-                print("INDEXERROR! Could not process location")
-                return
-            
-            response = {
-                "data": 
-                {
-                    "sender": MQTT_CLIENTID,
-                    "target": sender,
-                    "emergency": emergency,
-                    "msg":
+                # process location in memory
+                try:
+                    target = processLocation(sender, currentLocation, obstacles)
+                except IndexError:
+                    print("INDEXERROR! Could not process location")
+                    return
+                
+                response = {
+                    "data": 
                     {
-                        "direction": target,
-                        "LED": target
-                    }
-                },
-                "protocolVersion": 4.1
-            }
-            print(response)
+                        "sender": MQTT_CLIENTID,
+                        "target": sender,
+                        "emergency": emergency,
+                        "msg":
+                        {
+                            "direction": target,
+                            "LED": target
+                        }
+                    },
+                    "protocolVersion": 4.1
+                }
+                print(response)
 
-            # send new targetLocation to bot
-            client.publish(MQTT_TOPIC, json.dumps(response))
+                # send new targetLocation to bot
+                client.publish(MQTT_TOPIC, json.dumps(response))
             
         # else:
         #     print("Recieved message that wasn't addressed to me.")

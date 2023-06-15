@@ -6,7 +6,7 @@ Team members:
 - Bartholomeus Petrus
 - Thijs Dregmans
 
-Last edited on 2023-06-15
+Last edited on 2023-06-16
 
 ## Opdracht
 
@@ -43,7 +43,7 @@ Voor elk van de volgende criteria waaraan volledig is voldaan kan er 1 punt word
 2. [ ] De unit ontwijkt andere aanwezige units en obstakels.
 3. [x] De unit wisselt eigen positiegegevens en posities van obstakels uit met de centrale server.
 4. [x] De unit bereikt het opgegeven doel.
-5. [] Een display op de unit geeft de gewenste richting aan voor iedere stap.
+5. [x] Een display op de unit geeft de gewenste richting aan voor iedere stap.
 6. [x] De gewenste richting wordt ook aangeduid op fysieke hardware, en daar is ook een werkende noodstop-knop aanwezig.
 7. [x] De routes van de units worden bepaald door middel van een algoritme.
 8. [ ] Op het dashboard kunnen taken voor de units ingegeven worden en kan een noodstop gegeven worden.

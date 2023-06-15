@@ -71,6 +71,39 @@ Respons from server to bot:
 }
 ```
 
+Instructions for server from dashbaord:
+
+```json
+{
+    "data": 
+    {
+        "sender": "dashboard",
+        "target": "server",
+        "emergency": 0,
+        "msg":
+        {
+            "targetFields":
+                {
+                    "bot1":
+                    {
+                        "x": 0.1,
+                        "y": 0.1,
+                    },
+                    "bot2":
+                    {
+                        "x": 0.4,
+                        "y": -0.2,
+                    },
+                }
+        }
+    },
+    "protocolVersion": 4.1
+}
+```
+
+what bots are available, is known by the dashboard, as the same way as for the server: bots publish a message with their location.
+An emergency from the dashboard, looks the same as for the fysical bots. See here.
+
 Emergency:
 
 ```json
