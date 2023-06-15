@@ -211,6 +211,8 @@ def executeServerCommand(payload):
 
             turnOnLed(led)
             
+            client.publish(MQTT_TOPIC, createRequest())
+            
         # else:
         #     print("Recieved message that wasn't addressed to me.")
     else:
@@ -221,13 +223,13 @@ def executeServerCommand(payload):
 
 client = connect_mqtt()
 subscribe(client)
+client.publish(MQTT_TOPIC, createRequest())
     
 # execute every second
 while robot.step(duration) != -1:
     current_pos = supervisorNode.getPosition()
     
     
-    client.publish(MQTT_TOPIC, createRequest())
     client.loop(timeout=0.01, max_packets=10000)
 
     if(isEmergency() == 1):

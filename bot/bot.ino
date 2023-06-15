@@ -222,7 +222,7 @@ void emergency() {
   }
   
   Serial.println("Emergency stop broadcasted");
-  client.publish(mqtt_topic, "{\"data\":{\"sender\": \"bot1\", \"emergency\": 1}, \"protocolVersion\": 3.0}");
+  client.publish(mqtt_topic, "{\"data\":{\"sender\": \"bot1\", \"emergency\": 1}, \"protocolVersion\": 4.0}");
 }
 
 void setup() {
