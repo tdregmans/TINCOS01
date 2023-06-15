@@ -27,6 +27,7 @@ Request from bot to server:
     {
         "sender": "bot1",
         "target": "server",
+        "emergency": 0,
         "msg":
         {
             "currentLocation":
@@ -59,6 +60,7 @@ Respons from server to bot:
     {
         "sender": "server",
         "target": "bot2",
+        "emergency": 0,
         "msg":
         {
             "targetLocation":

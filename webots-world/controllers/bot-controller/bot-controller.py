@@ -1,7 +1,7 @@
 from controller import Supervisor
 from controller import LED
 from controller import DistanceSensor
-
+import sys
 from paho.mqtt import client as mqtt_client
 import time
 import json
@@ -17,6 +17,9 @@ MQTT_PORT = 1883
 MQTT_CLIENTID = "TINCOS01-BHT-" + str(BOT_ID) + "-DT" # DT means Digital Twin
 MQTT_TOPIC = "TINCOS/protocol/communication"
 MQTT_EMERGENCY_TOPIC = "TINCOS/protocol/emergency"
+
+global emergency
+emergency = 0
 
 ##################################################
 ################ MQTT CONNECTION #################
@@ -149,6 +152,7 @@ def createRequest():
         {
             "sender": BOT_ID,
             "target": "server",
+            "emergency": 0,
             "msg":
             {
                 "currentLocation":
@@ -159,11 +163,18 @@ def createRequest():
                 "obstacles": obstacles,
             }
         },
-        "protocolVersion": 2.0
+        "protocolVersion": 3.0
     }
     
     
     return json.dumps(request)
+
+def callEmergency():
+    global emergency
+    emergency = 1
+
+def isEmergency():
+    return emergency
     
 def goTo(targetLocation):
     x = targetLocation["x"]
@@ -180,11 +191,13 @@ def goTo(targetLocation):
 
 def executeServerCommand(payload):
     request = json.loads(payload)
-    if (request["protocolVersion"] == 2.0):
+    if (request["protocolVersion"] == 3.0):
         data = request["data"]
-
-        if (data["target"] == BOT_ID):
+        if (data["emergency"] == 1):
+            callEmergency()
+        elif (data["target"] == BOT_ID):
             sender = data["sender"]
+            emergency = data["emergency"]
 
             targetLocation = data["msg"]["targetLocation"]
 
@@ -193,7 +206,7 @@ def executeServerCommand(payload):
         # else:
         #     print("Recieved message that wasn't addressed to me.")
     else:
-        if(request["protocolVersion"] < 2.0):
+        if(request["protocolVersion"] < 3.0):
             print("WARNING! Deprecated protocol was used.")
         else:
             print("ERROR! Didn't understand syntax of request bot.")
@@ -208,6 +221,11 @@ while robot.step(duration) != -1:
     updateLEDS()
     client.publish(MQTT_TOPIC, createRequest())
     client.loop(timeout=0.01, max_packets=10)
+    # print(isEmergency())
+
+    if(isEmergency() == 1):
+        print(BOT_ID + " stopped for emergency")
+        sys.exit()
     
     
     

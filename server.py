@@ -46,8 +46,8 @@ def fieldId2coords(fieldId):
         x = (fieldId[0] / 10) - 0.4
         y = (fieldId[1] / 10) - 0.4
     except KeyError:
-        x = Null
-        y = Null
+        x = null
+        y = null
     return {"x": round(x,1), "y": round(y,1)}
 
 def printFields():
@@ -131,43 +131,7 @@ def processLocation(sender, currentLocation, obstacles):
 
 def processCommand(payload):
     request = json.loads(payload)
-    if (request["protocolVersion"] == 2.0):
-        data = request["data"]
-
-        if (data["target"] == MQTT_CLIENTID):
-            sender = data["sender"]
-
-            if(not(sender in bots)):
-                bots.append(sender)
-            print(sender)
-            currentLocation = data["msg"]["currentLocation"]
-            obstacles = data["msg"]["obstacles"]
-
-            # process location in memory
-            try:
-                target = processLocation(sender, currentLocation, obstacles)
-            except IndexError:
-                target = currentLocation
-            
-            response = {
-                "data": 
-                {
-                    "sender": MQTT_CLIENTID,
-                    "target": sender,
-                    "msg":
-                    {
-                        "targetLocation": fieldId2coords(target)
-                    }
-                },
-                "protocolVersion": 2.0
-            }
-
-            # send new targetLocation to bot
-            client.publish(MQTT_TOPIC, json.dumps(response))
-            
-        # else:
-        #     print("Recieved message that wasn't addressed to me.")
-    elif (request["protocolVersion"] == 3.0):
+    if (request["protocolVersion"] == 3.0):
         data = request["data"]
 
         if (data["emergency"]):
@@ -193,12 +157,13 @@ def processCommand(payload):
                 {
                     "sender": MQTT_CLIENTID,
                     "target": sender,
+                    "emergency": 0,
                     "msg":
                     {
                         "targetLocation": fieldId2coords(target)
                     }
                 },
-                "protocolVersion": 2.0
+                "protocolVersion": 3.0
             }
 
             # send new targetLocation to bot
@@ -207,7 +172,7 @@ def processCommand(payload):
         # else:
         #     print("Recieved message that wasn't addressed to me.")
     else:
-        if(request["protocolVersion"] < 2.0):
+        if (request["protocolVersion"] < 3.0):
             print("WARNING! Deprecated protocol was used.")
         else:
             print("ERROR! Didn't understand syntax of request bot.")

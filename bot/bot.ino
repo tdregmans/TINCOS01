@@ -174,6 +174,9 @@ void emergency() {
       delay(40);
       
   }
+  
+  Serial.println("Emergency stop broadcasted");
+  client.publish(mqtt_topic, "{\"data\":{\"sender\": \"bot1\", \"emergency\": 1}, \"protocolVersion\": 3.0}");
 }
 
 void setup() {
@@ -192,18 +195,12 @@ void setup() {
   client.setCallback(callback);
 
   calibrateLEDs();
+
 }
 
 
 
 void loop() {
-  
-  if (shouldTerminate){
-//    String msgStop = ;
-//    Serial.println(msgStop);
-    client.publish(mqtt_topic, "{\"data\":{\"sender\": \"bot1\", \"emergency\": 1}, \"protocolVersion\": 3.0}");
-    return;
-  }
 
   if (!client.connected()) {
     reconnect();
