@@ -27,7 +27,7 @@
 
 const char* mqtt_server = "broker.mqtt-dashboard.com";
 const char* mqtt_clientId = "TINCOS01-BHT-" + BOT_ID;
-const char* mqtt_topic = "TINCOS/protocol/communication";
+const char* mqtt_topic = "TINCOS/comms";
 
 volatile bool shouldTerminate = false;
 
@@ -62,10 +62,56 @@ void setup_wifi() {
   Serial.println(WiFi.localIP());
 }
 
-//int findIndex(String string, String sub) {
-//  while ()
-//  return -1;
-//}
+String getValue(String data, char separator, int index)
+{
+  int found = 0;
+  int strIndex[] = {0, -1};
+  int maxIndex = data.length()-1;
+
+  for(int i=0; i<=maxIndex && found<=index; i++){
+    if(data.charAt(i)==separator || i==maxIndex){
+        found++;
+        strIndex[0] = strIndex[1]+1;
+        strIndex[1] = (i == maxIndex) ? i+1 : i;
+    }
+  }
+
+  return found>index ? data.substring(strIndex[0], strIndex[1]) : "";
+}
+
+void processMessage(String message) {
+    // get x and y
+    String x = (getValue(message, ',', 3).substring(33));
+    String y = (getValue(message, ',', 4).substring(6).substring(0, 4));
+
+    if (y[0] != '-') {
+      y = y.substring(0, 3);
+    }
+
+    // get target
+    String targeti = (getValue(message, ',', 1));
+    String target = (getValue(targeti, '"', 3).substring(0, 4));
+
+    if (target == "bot"+String(BOT_ID)) {
+        // message addressed to this bot
+
+        
+        // get LED
+        String led = (getValue(message, ':', 9).substring(2,3));
+
+        Serial.println(led);
+
+        digitalWrite(LED_NORTH, led == "N");
+        digitalWrite(LED_EAST, led == "E");
+        digitalWrite(LED_SOUTH, led == "S");
+        digitalWrite(LED_WEST, led == "W");
+    }
+    else {
+        // ignore message
+        return;
+    }
+
+}
 
 void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Message arrived [");
@@ -80,7 +126,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.println(message);
 
   // Implement use of protocol
-  
+  processMessage(message);
   
 }
 

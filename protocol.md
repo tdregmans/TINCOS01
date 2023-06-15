@@ -2,7 +2,7 @@
 Bartholomeus Petrus
 Hidde-Jan Daniëls
 Thijs Dregmans
-2023-06-14
+2023-06-15
 In dit readme bestand spreken we het protocol af waarmee de robots en hun Digital Twins in Webots communiceren.
 
 ### Specificaties
@@ -48,7 +48,7 @@ Request from bot to server:
             },
         }
     },
-    "protocolVersion": 2.0
+    "protocolVersion": 4.0
 }
 ```
 
@@ -67,10 +67,11 @@ Respons from server to bot:
             {
                 "x": 0.0,
                 "y": -0.2
-            }
+            },
+            "LED": "N" | "E" | "S" | "W" | ""
         }
     },
-    "protocolVersion": 2.0
+    "protocolVersion": 4.0
 }
 ```
 

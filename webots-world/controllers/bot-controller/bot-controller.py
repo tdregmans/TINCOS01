@@ -102,13 +102,6 @@ def getCloser(value, target):
         return value + STEP
     else:
         return value
-    
-def updateLEDS():
-    # Turn on LEDS of distances where bot cannot move
-    LED_N.set(DS_N.getValue() < STEP)
-    LED_E.set(DS_E.getValue() < STEP)
-    LED_S.set(DS_S.getValue() < STEP)
-    LED_W.set(DS_W.getValue() < STEP)
 
 def calcuateObstacles():
     obstacles = []
@@ -164,7 +157,7 @@ def createRequest():
                 "obstacles": obstacles,
             }
         },
-        "protocolVersion": 3.0
+        "protocolVersion": 4.0
     }
     
     
@@ -193,25 +186,35 @@ def goTo(targetLocation):
             print(BOT_ID + " location change: from " + str(current_pos) + " to " + str(targetLocation))
             trans.setSFVec3f([x, y, 0])
 
+def turnOnLed(led):
+    LED_N.set(led == "N")
+    LED_E.set(led == "E")
+    LED_S.set(led == "S")
+    LED_W.set(led == "W")
+
+
 def executeServerCommand(payload):
     request = json.loads(payload)
-    if (request["protocolVersion"] == 3.0):
+    if (request["protocolVersion"] == 4.0):
         data = request["data"]
         print(request)
         if (data["emergency"] == 1):
             callEmergency()
         elif (data["target"] == BOT_ID):
             sender = data["sender"]
-            emergency = data["emergency"]
+            led = data["msg"]["LED"]
+
 
             targetLocation = data["msg"]["targetLocation"]
 
             goTo(targetLocation)
+
+            turnOnLed(led)
             
         # else:
         #     print("Recieved message that wasn't addressed to me.")
     else:
-        if(request["protocolVersion"] < 3.0):
+        if(request["protocolVersion"] < 4.0):
             print("WARNING! Deprecated protocol was used.")
         else:
             print("ERROR! Didn't understand syntax of request bot.")
@@ -226,8 +229,7 @@ while robot.step(duration) != -1:
     
     client.publish(MQTT_TOPIC, createRequest())
     client.loop(timeout=0.01, max_packets=10000)
-    # print(isEmergency())
-    updateLEDS()
+
     if(isEmergency() == 1):
         print(BOT_ID + " stopped for emergency")
         sys.exit()

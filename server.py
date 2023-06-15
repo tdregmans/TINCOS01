@@ -1,6 +1,6 @@
  #  server.py
  #
- #  version 3.0
+ #  version 4.0
  #  
  #  CMI-TI 22 TINCOS01
  #  Studenten: Bartholomeus Petrus, Hidde-Jan Daniels, Thijs Dregmans
@@ -129,14 +129,14 @@ def processLocation(sender, currentLocation, obstacles):
     print(target)
 
     
-    possibleNewLocations = [[x+1, y], [x-1, y], [x, y+1], [x, y-1]]
+    possibleNewLocations = [[x+1, y, "N"], [x-1, y, "E"], [x, y+1, "S"], [x, y-1, "W"]]
     # check for obstacles
     for location in possibleNewLocations:
         if(fields[location[0]][location[1]] != ""):
             # not empty -> remove
             possibleNewLocations.remove(location)
     # check what possible new location is closest to target
-    newLocation = [x, y]
+    newLocation = [x, y, ""]
 
     for possibleNewLocation in possibleNewLocations:
         if(distance(possibleNewLocation, target) < distance(newLocation, target)):
@@ -147,7 +147,7 @@ def processLocation(sender, currentLocation, obstacles):
 def processCommand(payload):
     global emergency
     request = json.loads(payload)
-    if (request["protocolVersion"] == 3.0):
+    if (request["protocolVersion"] == 4.0):
         data = request["data"]
 
         if (data["emergency"]):
@@ -179,11 +179,13 @@ def processCommand(payload):
                     "emergency": emergency,
                     "msg":
                     {
-                        "targetLocation": fieldId2coords(target)
+                        "targetLocation": fieldId2coords([target[0], target[1]]),
+                        "LED": target[2]
                     }
                 },
-                "protocolVersion": 3.0
+                "protocolVersion": 4.0
             }
+            print(response)
 
             # send new targetLocation to bot
             client.publish(MQTT_TOPIC, json.dumps(response))
@@ -191,7 +193,7 @@ def processCommand(payload):
         # else:
         #     print("Recieved message that wasn't addressed to me.")
     else:
-        if (request["protocolVersion"] < 3.0):
+        if (request["protocolVersion"] < 4.0):
             print("WARNING! Deprecated protocol was used.")
         else:
             print("ERROR! Didn't understand syntax of request bot.")
