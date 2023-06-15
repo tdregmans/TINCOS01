@@ -56,8 +56,5 @@ voldaan is.
 
 
 # todo
-- update protocol
-- targetlocation - niet meer xy, maar N|E|S|W|-
-- beweging van bots checken
 - check afstands sensor
 - ontwijk obstakels
