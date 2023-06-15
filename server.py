@@ -38,7 +38,7 @@ bots = ["bot1"]
 # hardcoded bot to assign targest, while there is no dashboard
 
 # global variable that stores the targetFields that the bots want to go to
-targetFields = [[0, 5]]
+targetFields = [[9, 5]]
 # hardcoded fields, while there is no dashboard 
 
 # helper-function: converts Webots coördinates to fields
@@ -102,6 +102,18 @@ def subscribe(client: mqtt_client):
     client.subscribe(MQTT_TOPIC)
     client.on_message = on_message
 
+def stripImpossibleLocations(possibleNewLocations):
+    for location in possibleNewLocations:
+        x = location["coords"][0]
+        y = location["coords"][1]
+        if (x < 0 or x > 9):
+            possibleNewLocations.remove(location)
+            print("striped: " + str(location))
+        elif (y < 0 or y > 9):
+            possibleNewLocations.remove(location)
+            print("striped: " + str(location))
+    return possibleNewLocations
+
 # find next target location
 def processLocation(sender, currentLocation, obstacles):
     # In fields[x][y] "" means empty field, "bot1" means bot1 in this field, "O" means obstacle in this field 
@@ -116,10 +128,11 @@ def processLocation(sender, currentLocation, obstacles):
     x, y = coords2fieldId(currentLocation)
     fields[x][y] = sender
 
-    # add obstacles
-    for obstacle in obstacles:
-        x, y = coords2fieldId(obstacle)
-        fields[x][y] = "o"
+    # # add obstacles
+    # for obstacle in obstacles:
+    #     x, y = coords2fieldId(obstacle)
+    #     fields[x][y] = "o"
+    # this code above creates the INDEXERROR
     
     # possible feature for later: Remove obstacle if they are no longer there.
     # First calcuate if bot should be able to see obstacle. Then, if not detected by bot, deleted by server
@@ -133,6 +146,10 @@ def processLocation(sender, currentLocation, obstacles):
         {"direction": "E", "coords": [x, y - 1]},
         {"direction": "S", "coords": [x - 1, y]},
         {"direction": "W", "coords": [x, y + 1]}]
+    
+    
+    possibleNewLocations = stripImpossibleLocations(possibleNewLocations)
+
     # check for obstacles
     for location in possibleNewLocations:
         x = location["coords"][0]
@@ -140,14 +157,14 @@ def processLocation(sender, currentLocation, obstacles):
         if (fields[x][y] != ""):
             possibleNewLocations.remove(location)
 
-    newLocation = {"direction": "N", "coords": [x + 1, y]}
-
-    if [currentLocation["x"], currentLocation["y"]] == target:
+    newLocation = {"direction": "", "coords": [x, y]}
+    
+    if (currentLocation == fieldId2coords(target)):
         print(sender + " reached destination")
         sys.exit()
     else:
         for possibleNewLocation in possibleNewLocations:
-            if(distance(possibleNewLocation["coords"], target) < distance(newLocation["coords"], target)):
+            if(distance(possibleNewLocation["coords"], target) <= distance(newLocation["coords"], target)):
                 newLocation = possibleNewLocation
 
     # debug option: print coords

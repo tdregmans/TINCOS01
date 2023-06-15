@@ -130,7 +130,7 @@ def calcuateObstacles():
             "x": round(current_pos[0], 1),
             "y": round(current_pos[1] + 0.1, 1)
         }
-        obstacles.append(obstacle) # something is wrong with the West
+        obstacles.append(obstacle)
 
     print(round(DS_N.getValue(), 2))
     print(round(DS_E.getValue(), 2))
