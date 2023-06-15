@@ -8,53 +8,73 @@
  #  Last edited: 2023-06-09
  #
 
-
+# import libaries
 from paho.mqtt import client as mqtt_client
 import time
 import json
 import math
-
-
 import sys
 
+# define MQTT constants
 MQTT_BROKER = "broker.mqtt-dashboard.com" 
 MQTT_PORT = 1883
 MQTT_CLIENTID = "server"
 MQTT_TOPIC = "TINCOS/protocol/communication"
 MQTT_EMERGENCY_TOPIC = "TINCOS/protocol/emergency"
 
-# fill empty field
+# global emergency variable
+global emergency
+emergency = 0
+
+# fill empty fields with ""
 fieldSize = 10
 fields = []
 for x in range(fieldSize):
     fields.append(["" for y in range(fieldSize)])
 
-bots = []
-bots = ["bot1", "bot2", "bot3"] # hardcoded bot to assign targest, while there is no dashboard
+# global variable that stores the bots in the program
+# bots = []
+bots = ["bot1", "bot2", "bot3"] 
+# hardcoded bot to assign targest, while there is no dashboard
 
+# global variable that stores the targetFields that the bots want to go to
 targetFields = [[0, 1], [9, 0], [0, 0]]
+# hardcoded fields, while there is no dashboard 
 
+# helper-function: converts Webots coördinates to fields
 def coords2fieldId(coords):
     # from Webots coördinates to field index
     x = (int) ((coords["x"] + 0.4) * 10)
     y = (int) ((coords["y"] + 0.4) * 10)
     return [x, y]
 
+# helper-function: converts fields to webots coördinates
 def fieldId2coords(fieldId):
-    # from Webots coördinates to field index
+    # from field index to Webots coördinates
     try:
         x = (fieldId[0] / 10) - 0.4
         y = (fieldId[1] / 10) - 0.4
     except KeyError:
         x = null
         y = null
+        print("KEYERROR! Something went wrong!")
     return {"x": round(x,1), "y": round(y,1)}
 
+# helper-function: get distance between two fields
+def distance(a, b):
+    # calculate the distance between a and b
+    xi = a[0] - b[0]
+    yi = a[1] - b[1]
+    return math.sqrt(math.pow(xi, 2) + math.pow(yi, 2))
+
+# debug-function: prints all fields
 def printFields():
     for row in fields:
         print(row)
 
+### MQTT function: connect to broker
 def connect_mqtt() -> mqtt_client:
+    # on-connect function
     def on_connect(client, userdata, flags, rc):
         if rc == 0:
             print("Connected to MQTT Broker!")
@@ -62,32 +82,27 @@ def connect_mqtt() -> mqtt_client:
             print("Failed to connect, return code %d\n", rc)
 
     client = mqtt_client.Client(MQTT_CLIENTID)
-    # client.username_pw_set(username, password)
     client.on_connect = on_connect
+    # connect to broker
     client.connect(MQTT_BROKER, MQTT_PORT)
     return client
 
-
-client = connect_mqtt()
-
+### MQTT function: subscribe to topic
 def subscribe(client: mqtt_client):
+    # on-message function
     def on_message(client, userdata, msg):
         payload = msg.payload.decode()
         topic = msg.topic
         print(payload)
         
+        # process the incomming command
         processCommand(payload)
 
+    # subscribe to topic
     client.subscribe(MQTT_TOPIC)
     client.on_message = on_message
 
-
-def distance(a, b):
-    # calculate the distance between a and b
-    xi = a[0] - b[0]
-    yi = a[1] - b[1]
-    return math.sqrt(math.pow(xi, 2) + math.pow(yi, 2))
-
+# find next target location
 def processLocation(sender, currentLocation, obstacles):
     # In fields[x][y] "" means empty field, "bot1" means bot1 in this field, "O" means obstacle in this field 
 
@@ -103,8 +118,7 @@ def processLocation(sender, currentLocation, obstacles):
 
     # add obstacles
     for obstacle in obstacles:
-        x = coords2fieldId(obstacle)[0]
-        y = coords2fieldId(obstacle)[1]
+        x, y = coords2fieldId(obstacle)
         fields[x][y] = "o"
     
     # possible feature for later: Remove obstacle if they are no longer there.
@@ -112,37 +126,41 @@ def processLocation(sender, currentLocation, obstacles):
 
     # find new location for bot to go to
     target = targetFields[bots.index(sender)]
+    print(target)
 
     
     possibleNewLocations = [[x+1, y], [x-1, y], [x, y+1], [x, y-1]]
     # check for obstacles
     for location in possibleNewLocations:
-        if(fields[location[0]][location[1]]):
+        if(fields[location[0]][location[1]] != ""):
             # not empty -> remove
             possibleNewLocations.remove(location)
     # check what possible new location is closest to target
     newLocation = [x, y]
-    max = 0
+
     for possibleNewLocation in possibleNewLocations:
-        if(distance(possibleNewLocation, target) >= distance(newLocation, target)):
-            max = distance(possibleNewLocation, target)
+        if(distance(possibleNewLocation, target) < distance(newLocation, target)):
             newLocation = possibleNewLocation
     return newLocation
 
+# process the incomming command from server
 def processCommand(payload):
+    global emergency
     request = json.loads(payload)
     if (request["protocolVersion"] == 3.0):
         data = request["data"]
 
         if (data["emergency"]):
             print("EMERGENCY STOP")
-            sys.exit()
+            emergency = 1
+            # sys.exit()
         elif (data["target"] == MQTT_CLIENTID):
             sender = data["sender"]
 
+            # add bot to global bots list
             if(not(sender in bots)):
                 bots.append(sender)
-            print(sender)
+
             currentLocation = data["msg"]["currentLocation"]
             obstacles = data["msg"]["obstacles"]
 
@@ -150,14 +168,15 @@ def processCommand(payload):
             try:
                 target = processLocation(sender, currentLocation, obstacles)
             except IndexError:
-                target = currentLocation
+                print("INDEXERROR! Could not process location")
+                return
             
             response = {
                 "data": 
                 {
                     "sender": MQTT_CLIENTID,
                     "target": sender,
-                    "emergency": 0,
+                    "emergency": emergency,
                     "msg":
                     {
                         "targetLocation": fieldId2coords(target)
@@ -176,6 +195,9 @@ def processCommand(payload):
             print("WARNING! Deprecated protocol was used.")
         else:
             print("ERROR! Didn't understand syntax of request bot.")
+
+
+client = connect_mqtt()
 
 def run():
     subscribe(client)

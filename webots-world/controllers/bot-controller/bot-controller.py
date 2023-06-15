@@ -145,6 +145,7 @@ def calcuateObstacles():
 
 def createRequest():
     # return a valid request of the bot to the server with protocol 2.0
+    global emergency
     current_pos = supervisorNode.getPosition()
     obstacles = calcuateObstacles()
     request = {
@@ -152,7 +153,7 @@ def createRequest():
         {
             "sender": BOT_ID,
             "target": "server",
-            "emergency": 0,
+            "emergency": emergency,
             "msg":
             {
                 "currentLocation":
@@ -170,24 +171,23 @@ def createRequest():
     return json.dumps(request)
 
 def callEmergency():
-    global emergency
-    emergency = 1
-
-def isEmergency():
-    return emergency
+    print(BOT_ID + " stopped for emergency")
     
 def goTo(targetLocation):
     x = targetLocation["x"]
     y = targetLocation["y"]
-    current_pos = supervisorNode.getPosition()
+    current_pos = {'x': supervisorNode.getPosition()[0], 'y':supervisorNode.getPosition()[1]}
     
     # double check if targetLocation is free
     if(targetLocation in calcuateObstacles()):
         # do nothing
         print(BOT_ID + ": WARNING! wanted to collide with obstacle")
     else:
-        print(BOT_ID + " location change; from " + str(current_pos) + " to " + str(targetLocation))
-        trans.setSFVec3f([x, y, 0])
+        if(current_pos == targetLocation):
+            print(BOT_ID + " didn't change location. current location: " + str(current_pos))
+        else:
+            print(BOT_ID + " location change: from " + str(current_pos) + " to " + str(targetLocation))
+            trans.setSFVec3f([x, y, 0])
 
 def executeServerCommand(payload):
     request = json.loads(payload)
@@ -221,11 +221,3 @@ while robot.step(duration) != -1:
     updateLEDS()
     client.publish(MQTT_TOPIC, createRequest())
     client.loop(timeout=0.01, max_packets=10)
-    # print(isEmergency())
-
-    if(isEmergency() == 1):
-        print(BOT_ID + " stopped for emergency")
-        sys.exit()
-    
-    
-    
