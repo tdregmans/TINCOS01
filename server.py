@@ -1,6 +1,6 @@
  #  server.py
  #
- #  version 4.0
+ #  version 4.1
  #  
  #  CMI-TI 22 TINCOS01
  #  Studenten: Bartholomeus Petrus, Hidde-Jan Daniels, Thijs Dregmans
@@ -55,8 +55,8 @@ def fieldId2coords(fieldId):
         x = (fieldId[0] / 10) - 0.4
         y = (fieldId[1] / 10) - 0.4
     except KeyError:
-        x = null
-        y = null
+        x = 0
+        y = 0
         print("KEYERROR! Something went wrong!")
     return {"x": round(x,1), "y": round(y,1)}
 
@@ -126,28 +126,36 @@ def processLocation(sender, currentLocation, obstacles):
 
     # find new location for bot to go to
     target = targetFields[bots.index(sender)]
-    print(target)
 
     
-    possibleNewLocations = [[x+1, y, "N"], [x-1, y, "E"], [x, y+1, "S"], [x, y-1, "W"]]
+    possibleNewLocations = [
+        {"direction": "N", "coords": [x + 1, y]},
+        {"direction": "E", "coords": [x - 1, y]},
+        {"direction": "S", "coords": [x, y + 1]},
+        {"direction": "W", "coords": [x, y - 1]}]
     # check for obstacles
     for location in possibleNewLocations:
-        if(fields[location[0]][location[1]] != ""):
-            # not empty -> remove
+        x = location["coords"][0]
+        y = location["coords"][1]
+        if (fields[x][y] != ""):
             possibleNewLocations.remove(location)
-    # check what possible new location is closest to target
-    newLocation = [x, y, ""]
 
-    for possibleNewLocation in possibleNewLocations:
-        if(distance(possibleNewLocation, target) < distance(newLocation, target)):
-            newLocation = possibleNewLocation
-    return newLocation
+    newLocation = {"direction": "N", "coords": [x + 1, y]}
+
+    if distance([x, y], target) <= 0.05:
+        print(sender + " reached destination")
+        sys.exit()
+    else:
+        for possibleNewLocation in possibleNewLocations:
+            if(distance(possibleNewLocation["coords"], target) < distance(newLocation["coords"], target)):
+                newLocation = possibleNewLocation
+    return newLocation["direction"]
 
 # process the incomming command from server
 def processCommand(payload):
     global emergency
     request = json.loads(payload)
-    if (request["protocolVersion"] == 4.0):
+    if (request["protocolVersion"] == 4.1):
         data = request["data"]
 
         if (data["emergency"]):
@@ -179,11 +187,11 @@ def processCommand(payload):
                     "emergency": emergency,
                     "msg":
                     {
-                        "targetLocation": fieldId2coords([target[0], target[1]]),
-                        "LED": target[2]
+                        "direction": target,
+                        "LED": target
                     }
                 },
-                "protocolVersion": 4.0
+                "protocolVersion": 4.1
             }
             print(response)
 
@@ -193,7 +201,7 @@ def processCommand(payload):
         # else:
         #     print("Recieved message that wasn't addressed to me.")
     else:
-        if (request["protocolVersion"] < 4.0):
+        if (request["protocolVersion"] < 4.1):
             print("WARNING! Deprecated protocol was used.")
         else:
             print("ERROR! Didn't understand syntax of request bot.")

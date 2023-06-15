@@ -6,7 +6,7 @@
   CMI-TI 22 TINCOS01
   Studenten: Bartholomeus Petrus, Hidde-Jan Daniels, Thijs Dregmans
   Connected Systems
-  Last edited: 2023-06-14
+  Last edited: 2023-06-15
 
 */
 
@@ -222,7 +222,7 @@ void emergency() {
   }
   
   Serial.println("Emergency stop broadcasted");
-  client.publish(mqtt_topic, "{\"data\":{\"sender\": \"bot1\", \"emergency\": 1}, \"protocolVersion\": 4.0}");
+  client.publish(mqtt_topic, "{\"data\":{\"sender\": \"bot1\", \"emergency\": 1}, \"protocolVersion\": 4.1}");
 }
 
 void setup() {

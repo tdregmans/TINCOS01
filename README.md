@@ -6,7 +6,7 @@ Team members:
 - Bartholomeus Petrus
 - Thijs Dregmans
 
-Last edited on 2023-06-07
+Last edited on 2023-06-15
 
 ## Opdracht
 
@@ -53,3 +53,11 @@ Voor elk van de volgende criteria waaraan volledig is voldaan kan er 1 punt word
 Een extra punt kan worden toegekend als de units of het dashboard een extra feature hebben (voorafgaand
 aan de toetsing afgestemd met de docent), maar alleen als er aan minstens 6 van bovenstaande criteria
 voldaan is.
+
+
+# todo
+- update protocol
+- targetlocation - niet meer xy, maar N|E|S|W|-
+- beweging van bots checken
+- check afstands sensor
+- ontwijk obstakels

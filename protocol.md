@@ -48,7 +48,7 @@ Request from bot to server:
             },
         }
     },
-    "protocolVersion": 4.0
+    "protocolVersion": 4.1
 }
 ```
 
@@ -63,15 +63,11 @@ Respons from server to bot:
         "emergency": 0,
         "msg":
         {
-            "targetLocation":
-            {
-                "x": 0.0,
-                "y": -0.2
-            },
+            "direction": "N" | "E" | "S" | "W" | "",
             "LED": "N" | "E" | "S" | "W" | ""
         }
     },
-    "protocolVersion": 4.0
+    "protocolVersion": 4.1
 }
 ```
 
@@ -84,6 +80,6 @@ Emergency:
         "sender": "bot1",
         "emergency": 1
     },
-    "protocolVersion": 3.0
+    "protocolVersion": 4.1
 }
 ```

@@ -89,9 +89,6 @@ DS_W.enable(timestep)
 current_pos = supervisorNode.getPosition()
 print(BOT_ID + " location: " + str(current_pos))
 
-client = connect_mqtt()
-subscribe(client)
-
 # calculate a multiple of timestep close to one second
 duration = (1000 // timestep) * timestep
 
@@ -157,7 +154,7 @@ def createRequest():
                 "obstacles": obstacles,
             }
         },
-        "protocolVersion": 4.0
+        "protocolVersion": 4.1
     }
     
     
@@ -170,10 +167,22 @@ def callEmergency():
 def isEmergency():
     return emergency
     
-def goTo(targetLocation):
+def goTo(direction):
+    current_pos = {'x': supervisorNode.getPosition()[0], 'y':supervisorNode.getPosition()[1]}
+    print(direction)
+    if (direction == "N"):
+        targetLocation = {'x': supervisorNode.getPosition()[0] + 0.1, 'y':supervisorNode.getPosition()[1]}
+    if (direction == "E"):
+        targetLocation = {'x': supervisorNode.getPosition()[0] - 0.1, 'y':supervisorNode.getPosition()[1]}
+    if (direction == "S"):
+        targetLocation = {'x': supervisorNode.getPosition()[0], 'y':supervisorNode.getPosition()[1] + 0.1}
+    if (direction == "W"):
+        targetLocation = {'x': supervisorNode.getPosition()[0], 'y':supervisorNode.getPosition()[1] - 0.1}
+    else:
+        targetLocation = current_pos
+    
     x = targetLocation["x"]
     y = targetLocation["y"]
-    current_pos = {'x': supervisorNode.getPosition()[0], 'y':supervisorNode.getPosition()[1]}
     
     # double check if targetLocation is free
     if(targetLocation in calcuateObstacles()):
@@ -195,9 +204,9 @@ def turnOnLed(led):
 
 def executeServerCommand(payload):
     request = json.loads(payload)
-    if (request["protocolVersion"] == 4.0):
+    if (request["protocolVersion"] == 4.1):
         data = request["data"]
-        print(request)
+        # print(request)
         if (data["emergency"] == 1):
             callEmergency()
         elif (data["target"] == BOT_ID):
@@ -205,7 +214,7 @@ def executeServerCommand(payload):
             led = data["msg"]["LED"]
 
 
-            targetLocation = data["msg"]["targetLocation"]
+            targetLocation = data["msg"]["direction"]
 
             goTo(targetLocation)
 
@@ -216,7 +225,7 @@ def executeServerCommand(payload):
         # else:
         #     print("Recieved message that wasn't addressed to me.")
     else:
-        if(request["protocolVersion"] < 4.0):
+        if(request["protocolVersion"] < 4.1):
             print("WARNING! Deprecated protocol was used.")
         else:
             print("ERROR! Didn't understand syntax of request bot.")
