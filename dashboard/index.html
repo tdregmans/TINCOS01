@@ -1,94 +1,75 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>TINCOS01 - Dashboard</title>
-        <style>
-            body {
-                padding: 0%;
-                margin: 0%;
-                background-color: cornflowerblue;
-            }
-        
-            #main {
-                border: none;
-                border-radius: 20px;
-                padding: 25px;
-                margin: 15%;
-        
-                background-color: azure;
-            }
-        </style>
+        <link rel="stylesheet" href="style.css">
     </head>
+
     <body>
-
         <div id="main">
+            <!-- Title -->
             <h1>Dashboard</h1>
+            <!-- Divider -->
             <hr>
-            <canvas class="myCanvas" width="500" height="500" style="border:1px solid #000000;">
-                Your browser does not support the HTML canvas tag.
-            </canvas>
-
-            <div style="border:1px solid #000000;">
-                test
-            </div>
-            
-            <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/4.2.7/mqtt.min.js"></script>
-
+            <!-- Button -->
+            <button onclick="emergency()" background-color: red; color: white;>Emergency</button>
             <script>
-
-                // Define constant canvas
-                const canvas = document.querySelector('.myCanvas');
-                const width = canvas.width; // = window.innerWidth;
-                const height = canvas.height; // = window.innerHeight;
-                const ctx = canvas.getContext('2d');
-
-                // Define bot colors
-                const bot1Color = "rgb(255, 0, 0)";
-                const bot2Color = "rgb(0, 255, 0)";
-                const bot3Color = "rgb(0, 0, 255)";
-                // hardcoded now. Maybe make this dynamic in the future!
-
-                const mqttBroker = "broker.mqtt-dashboard.com:1883";
-                const mqttTopic = "TINCOS/protocol/communication";
-
-                // MQTT definitions
-                const client  = mqtt.connect(mqttBroker);
-                client.on('connect', function () {
-                client.subscribe('presence', function (err) {
-                    if (!err) {
-                    client.publish('presence', 'Hello mqtt')
-                    }
-                })
-                })
-
-                client.on('message', function (topic, message) {
-                    // message is Buffer
-                    console.log(message.toString())
-                    client.end()
-                });
-
-                client.publish(mqttTopic, message);
-
-                drawObstacle(3, 9);
-
-                function drawObstacle(x, y) {
-                    ctx.fillStyle = "rgb(0, 0, 0)";
-                    ctx.fillRect(x*50, y*50, 50, 50);
+                function emergency(){
+                    // emergency function
                 }
-
-                function drawBot(x, y, color) {
-                    ctx.fillStyle = color;
-                    ctx.fillRect(x*50, y*50, 50, 50);
-                }
-
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                drawBot(0,0, bot1Color);
-
-                // https://stackoverflow.com/questions/76438587/mqtt-js-uncaught-typeerror-n-createconnection-is-not-a-function
-                // something is wrong: JS MQTT can only work with websocets, says this article. We avoided websocets because they are hard to deal with.
             </script>
             <br>
         </div>
     </body>
+
+    <script>
+        //broker.mqtt-dashboard.com
+        //port 1883
+
+        const clientId = 'mqttjs_' + Math.random().toString(16).substr(2, 8)
+        const host = 'ws://broker.emqx.io:8083/mqtt'
+        const options = {
+          keepalive: 60,
+          clientId: clientId,
+          protocolId: 'MQTT',
+          protocolVersion: 4,
+          clean: true,
+          reconnectPeriod: 1000,
+          connectTimeout: 30 * 1000,
+          will: {
+            topic: 'WillMsg',
+            payload: 'Connection Closed abnormally..!',
+            qos: 0,
+            retain: false
+          },
+        }
+        console.log('Connecting mqtt client')
+        const client = mqtt.connect(host, options)
+        client.on('error', (err) => {
+          console.log('Connection error: ', err)
+          client.end()
+        })
+        client.on('reconnect', () => {
+          console.log('Reconnecting...')
+        })
+
+        client.on('connect', () => {
+        console.log(`Client connected: ${clientId}`)
+        
+        // Subscribe
+        client.subscribe('testtopic', { qos: 0 })
+        })
+        // Unsubscribe
+        client.unubscribe('testtopic', () => {
+        console.log('Unsubscribed');
+        })
+
+        // Publish
+        client.publish('testtopic', 'ws connection demo...!', { qos: 0, retain: false })
+        // Receive
+        client.on('message', (topic, message, packet) => {
+        console.log(`Received Message: ${message.toString()} On topic: ${topic}`)
+        })
+    </script>
 </html>
