@@ -1,0 +1,14 @@
+body{
+    padding: 0%;
+    margin: 0%;
+    background-color: cornflowerblue;
+}
+
+#main {
+    border: none;
+    border-radius: 20px;
+    padding: 25px;
+    margin: 15%;
+
+    background-color: azure;
+}
